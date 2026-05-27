@@ -1,0 +1,17 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.log
+.DS_Store
+
+## Environment
+.env
+
+## IDE
+.vs/
+.vscode/
+.idea/
+*.swp
