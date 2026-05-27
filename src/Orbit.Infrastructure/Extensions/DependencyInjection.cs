@@ -24,6 +24,7 @@ public static class DependencyInjection
         services.AddCloudinary();
         services.AddHashing();
         services.AddJwt();
+        services.AddRedis();
         services.AddRepositories();
 
         return services;
@@ -74,6 +75,20 @@ public static class DependencyInjection
     public static IServiceCollection AddRepositories(this IServiceCollection services)
     {
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+        return services;
+    }
+
+    public static IServiceCollection AddRedis(this IServiceCollection services)
+    {
+        var connection = Environment.GetEnvironmentVariable("REDIS_CONNECTION") ?? "localhost:6379";
+
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = connection;
+        });
+
+        services.AddScoped<IResetTokenService, ResetTokenService>();
+
         return services;
     }
 }
