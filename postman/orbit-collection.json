@@ -726,6 +726,7 @@
                   "var json = pm.response.json();",
                   "if (json.isSuccess) {",
                   "    pm.collectionVariables.set('postId', json.data.id);",
+                  "    pm.expect(json.data.media).to.be.an('array');",
                   "}"
                 ]
               }
@@ -751,6 +752,45 @@
           }
         },
         {
+          "name": "Create Post (with multiple media)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "var json = pm.response.json();",
+                  "if (json.isSuccess) {",
+                  "    pm.collectionVariables.set('postId', json.data.id);",
+                  "    pm.expect(json.data.media.length).to.be.at.least(2);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "content", "value": "A post with multiple images!" },
+                { "key": "media", "type": "file", "src": "post-image-1.jpg" },
+                { "key": "media", "type": "file", "src": "post-image-2.jpg" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/posts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts"]
+            }
+          }
+        },
+        {
           "name": "Get Post by ID",
           "event": [
             {
@@ -764,6 +804,7 @@
                   "    var json = pm.response.json();",
                   "    pm.expect(json.isSuccess).to.eql(true);",
                   "    pm.expect(json.data).to.have.property('content');",
+                  "    pm.expect(json.data.media).to.be.an('array');",
                   "});"
                 ]
               }
@@ -862,12 +903,14 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
               { "key": "Authorization", "value": "Bearer {{accessToken}}" }
             ],
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"content\": \"Updated post content!\"\n}"
+              "mode": "formdata",
+              "formdata": [
+                { "key": "content", "value": "Updated post content!" },
+                { "key": "media", "type": "file", "src": "replacement-image.jpg", "description": "Optional: replace all existing media with new files" }
+              ]
             },
             "url": {
               "raw": "{{baseUrl}}/api/posts/{{postId}}",

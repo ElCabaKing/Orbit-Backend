@@ -13,6 +13,7 @@ public class PostService : IPostService
     private readonly IGenericRepository<Profile> _profileRepo;
     private readonly IGenericRepository<PostLike> _likeRepo;
     private readonly IGenericRepository<Comment> _commentRepo;
+    private readonly IGenericRepository<PostMedia> _mediaRepo;
     private readonly ICloudinaryService _cloudinaryService;
 
     public PostService(
@@ -20,47 +21,28 @@ public class PostService : IPostService
         IGenericRepository<Profile> profileRepo,
         IGenericRepository<PostLike> likeRepo,
         IGenericRepository<Comment> commentRepo,
+        IGenericRepository<PostMedia> mediaRepo,
         ICloudinaryService cloudinaryService)
     {
         _postRepo = postRepo;
         _profileRepo = profileRepo;
         _likeRepo = likeRepo;
         _commentRepo = commentRepo;
+        _mediaRepo = mediaRepo;
         _cloudinaryService = cloudinaryService;
     }
 
-    public async Task<Result<PostResponse>> CreatePostAsync(Guid authUserId, string content, Stream? mediaStream, string? mediaFileName)
+    public async Task<Result<PostResponse>> CreatePostAsync(Guid authUserId, string content, List<MediaUploadData>? mediaFiles)
     {
         var profile = await _profileRepo.FirstOrDefaultAsync(p => p.AuthUserId == authUserId);
         if (profile is null)
             return Result<PostResponse>.Failure(ResponseMessages.ProfileNotFound);
-
-        string? mediaUrl = null;
-        string? mediaPublicId = null;
-        string? mediaType = null;
-
-        if (mediaStream is not null && !string.IsNullOrEmpty(mediaFileName))
-        {
-            var ext = Path.GetExtension(mediaFileName);
-            var fileName = $"{profile.Id}_{Guid.NewGuid()}{ext}";
-            var uploadResult = await _cloudinaryService.UploadAsync(mediaStream, fileName, CloudinaryFolder.PostMedia);
-
-            if (uploadResult.IsSuccess && uploadResult.Data is not null)
-            {
-                mediaUrl = uploadResult.Data.Url;
-                mediaPublicId = uploadResult.Data.PublicId;
-                mediaType = GetMediaType(mediaFileName);
-            }
-        }
 
         var post = new Orbit.Domain.Entities.Post
         {
             Id = Guid.NewGuid(),
             ProfileId = profile.Id,
             Content = content,
-            MediaUrl = mediaUrl,
-            MediaPublicId = mediaPublicId,
-            MediaType = mediaType,
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
@@ -68,13 +50,47 @@ public class PostService : IPostService
 
         await _postRepo.CreateAsync(post);
 
+        var mediaList = new List<PostMedia>();
+        if (mediaFiles is not null && mediaFiles.Count > 0)
+        {
+            for (int i = 0; i < mediaFiles.Count; i++)
+            {
+                var media = mediaFiles[i];
+                var ext = Path.GetExtension(media.FileName);
+                var fileName = $"{profile.Id}_{Guid.NewGuid()}{ext}";
+                var uploadResult = await _cloudinaryService.UploadAsync(media.FileStream, fileName, CloudinaryFolder.PostMedia);
+
+                if (uploadResult.IsSuccess && uploadResult.Data is not null)
+                {
+                    var data = uploadResult.Data;
+                    var postMedia = new PostMedia
+                    {
+                        Id = Guid.NewGuid(),
+                        PostId = post.Id,
+                        Url = data.Url,
+                        PublicId = data.PublicId,
+                        MediaType = GetMediaType(media.FileName) ?? "image",
+                        Order = i,
+                        Width = data.Width,
+                        Height = data.Height,
+                        SizeBytes = data.SizeBytes,
+                        Format = data.Format,
+                        DurationSeconds = data.DurationSeconds,
+                        CreatedAt = DateTime.UtcNow,
+                    };
+                    mediaList.Add(postMedia);
+                    await _mediaRepo.AddEntityAsync(postMedia);
+                }
+            }
+        }
+
         profile.PostsCount++;
         profile.UpdatedAt = DateTime.UtcNow;
         _profileRepo.Update(profile);
         await _profileRepo.SaveChangesAsync();
 
         var author = BuildAuthorResponse(profile);
-        return Result<PostResponse>.Success(BuildPostResponse(post, author, false));
+        return Result<PostResponse>.Success(BuildPostResponse(post, author, false, mediaList));
     }
 
     public async Task<Result<PostResponse>> GetPostAsync(Guid postId, Guid? currentProfileId)
@@ -94,8 +110,10 @@ public class PostService : IPostService
             isLiked = like is not null;
         }
 
+        var media = await _mediaRepo.GetListAsync(m => m.PostId == postId);
+
         var author = BuildAuthorResponse(profile);
-        return Result<PostResponse>.Success(BuildPostResponse(post, author, isLiked));
+        return Result<PostResponse>.Success(BuildPostResponse(post, author, isLiked, media));
     }
 
     public async Task<Result<PagedResult<PostResponse>>> GetTimelineAsync(Guid? currentProfileId, int page, int pageSize)
@@ -131,7 +149,7 @@ public class PostService : IPostService
         return await BuildPagedPostResponse(posts, totalCount, page, pageSize, currentProfileId);
     }
 
-    public async Task<Result<PostResponse>> UpdatePostAsync(Guid authUserId, Guid postId, string content)
+    public async Task<Result<PostResponse>> UpdatePostAsync(Guid authUserId, Guid postId, string content, List<MediaUploadData>? mediaFiles = null)
     {
         var profile = await _profileRepo.FirstOrDefaultAsync(p => p.AuthUserId == authUserId);
         if (profile is null)
@@ -144,10 +162,52 @@ public class PostService : IPostService
         post.Content = content;
         post.UpdatedAt = DateTime.UtcNow;
         _postRepo.Update(post);
+
+        if (mediaFiles is not null)
+        {
+            var existingMedia = await _mediaRepo.GetListAsync(m => m.PostId == postId);
+            foreach (var m in existingMedia)
+            {
+                await _cloudinaryService.DeleteAsync(m.PublicId);
+                _mediaRepo.Remove(m);
+            }
+
+            for (int i = 0; i < mediaFiles.Count; i++)
+            {
+                var media = mediaFiles[i];
+                var ext = Path.GetExtension(media.FileName);
+                var fileName = $"{profile.Id}_{Guid.NewGuid()}{ext}";
+                var uploadResult = await _cloudinaryService.UploadAsync(media.FileStream, fileName, CloudinaryFolder.PostMedia);
+
+                if (uploadResult.IsSuccess && uploadResult.Data is not null)
+                {
+                    var data = uploadResult.Data;
+                    var postMedia = new PostMedia
+                    {
+                        Id = Guid.NewGuid(),
+                        PostId = post.Id,
+                        Url = data.Url,
+                        PublicId = data.PublicId,
+                        MediaType = GetMediaType(media.FileName) ?? "image",
+                        Order = i,
+                        Width = data.Width,
+                        Height = data.Height,
+                        SizeBytes = data.SizeBytes,
+                        Format = data.Format,
+                        DurationSeconds = data.DurationSeconds,
+                        CreatedAt = DateTime.UtcNow,
+                    };
+                    await _mediaRepo.AddEntityAsync(postMedia);
+                }
+            }
+        }
+
         await _postRepo.SaveChangesAsync();
 
+        var mediaList = await _mediaRepo.GetListAsync(m => m.PostId == postId);
+
         var author = BuildAuthorResponse(profile);
-        return Result<PostResponse>.Success(BuildPostResponse(post, author, false));
+        return Result<PostResponse>.Success(BuildPostResponse(post, author, false, mediaList));
     }
 
     public async Task<Result> DeletePostAsync(Guid authUserId, Guid postId)
@@ -160,9 +220,11 @@ public class PostService : IPostService
         if (post is null)
             return Result.Failure(ResponseMessages.PostNotFound);
 
-        if (post.MediaPublicId is not null)
+        var mediaList = await _mediaRepo.GetListAsync(m => m.PostId == postId);
+        foreach (var media in mediaList)
         {
-            await _cloudinaryService.DeleteAsync(post.MediaPublicId);
+            await _cloudinaryService.DeleteAsync(media.PublicId);
+            _mediaRepo.Remove(media);
         }
 
         await _postRepo.DeleteAsync(postId);
@@ -340,13 +402,22 @@ public class PostService : IPostService
             likedPostIds = likes.Select(l => l.PostId).ToHashSet();
         }
 
+        Dictionary<Guid, List<PostMedia>> mediaMap = [];
+        if (posts.Count > 0)
+        {
+            var postIds = posts.Select(p => p.Id).ToList();
+            var allMedia = await _mediaRepo.GetListAsync(m => postIds.Contains(m.PostId));
+            mediaMap = allMedia.GroupBy(m => m.PostId).ToDictionary(g => g.Key, g => g.ToList());
+        }
+
         var items = posts.Select(p =>
         {
             var prof = profileMap.GetValueOrDefault(p.ProfileId);
             var author = prof is not null
                 ? BuildAuthorResponse(prof)
                 : new PostAuthorResponse(p.ProfileId, "Unknown", "Unknown", null);
-            return BuildPostResponse(p, author, likedPostIds.Contains(p.Id));
+            var media = mediaMap.GetValueOrDefault(p.Id) ?? [];
+            return BuildPostResponse(p, author, likedPostIds.Contains(p.Id), media);
         }).ToList();
 
         return Result<PagedResult<PostResponse>>.Success(new PagedResult<PostResponse>
@@ -368,14 +439,22 @@ public class PostService : IPostService
         );
     }
 
-    private static PostResponse BuildPostResponse(Orbit.Domain.Entities.Post post, PostAuthorResponse author, bool isLiked)
+    private static PostResponse BuildPostResponse(Orbit.Domain.Entities.Post post, PostAuthorResponse author, bool isLiked, List<PostMedia> media)
     {
         return new PostResponse(
             post.Id,
             author,
             post.Content,
-            post.MediaUrl,
-            post.MediaType,
+            media.OrderBy(m => m.Order).Select(m => new PostMediaResponse(
+                m.Url,
+                m.MediaType,
+                m.Order,
+                m.Width,
+                m.Height,
+                m.SizeBytes,
+                m.Format,
+                m.DurationSeconds
+            )).ToList(),
             post.LikeCount,
             post.CommentCount,
             isLiked,

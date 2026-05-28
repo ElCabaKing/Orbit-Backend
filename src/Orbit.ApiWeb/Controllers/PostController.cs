@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Orbit.ApiWeb.DTOs;
 using Orbit.Application.Constants;
+using Orbit.Application.DTOs;
 using Orbit.Application.Interfaces;
 
 namespace Orbit.ApiWeb.Controllers;
@@ -40,19 +41,22 @@ public class PostController : ControllerBase
         if (authUserId is null)
             return Unauthorized(new { isSuccess = false, message = ResponseMessages.InvalidToken });
 
-        Stream? mediaStream = null;
-        if (request.Media is not null)
+        List<MediaUploadData>? mediaFiles = null;
+        if (request.Media is not null && request.Media.Count > 0)
         {
-            mediaStream = request.Media.OpenReadStream();
+            mediaFiles = request.Media
+                .Where(f => f is not null)
+                .Select(f => new MediaUploadData(f.OpenReadStream(), f.FileName))
+                .ToList();
         }
 
         var result = await _postService.CreatePostAsync(
-            authUserId.Value, request.Content, mediaStream, request.Media?.FileName);
+            authUserId.Value, request.Content, mediaFiles);
 
         if (!result.IsSuccess)
             return BadRequest(new { isSuccess = false, message = result.Message });
 
-        return CreatedAtAction(nameof(Create), new { isSuccess = true, data = result.Data });
+        return CreatedAtAction(nameof(Create), null, new { isSuccess = true, data = result.Data });
     }
 
     [AllowAnonymous]
@@ -93,7 +97,7 @@ public class PostController : ControllerBase
 
     [Authorize]
     [HttpPut("api/posts/{id:guid}")]
-    public async Task<IActionResult> Update(Guid id, [FromBody] UpdatePostRequest request)
+    public async Task<IActionResult> Update(Guid id, [FromForm] UpdatePostRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Content) || request.Content.Length > 1000)
             return BadRequest(new { isSuccess = false, message = "Content is required and must not exceed 1000 characters" });
@@ -102,7 +106,16 @@ public class PostController : ControllerBase
         if (authUserId is null)
             return Unauthorized(new { isSuccess = false, message = ResponseMessages.InvalidToken });
 
-        var result = await _postService.UpdatePostAsync(authUserId.Value, id, request.Content);
+        List<MediaUploadData>? mediaFiles = null;
+        if (request.Media is not null && request.Media.Count > 0)
+        {
+            mediaFiles = request.Media
+                .Where(f => f is not null)
+                .Select(f => new MediaUploadData(f.OpenReadStream(), f.FileName))
+                .ToList();
+        }
+
+        var result = await _postService.UpdatePostAsync(authUserId.Value, id, request.Content, mediaFiles);
 
         if (!result.IsSuccess)
             return NotFound(new { isSuccess = false, message = result.Message });
@@ -178,7 +191,7 @@ public class PostController : ControllerBase
         if (!result.IsSuccess)
             return NotFound(new { isSuccess = false, message = result.Message });
 
-        return CreatedAtAction(nameof(CreateComment), new { isSuccess = true, data = result.Data });
+        return CreatedAtAction(nameof(CreateComment), null, new { isSuccess = true, data = result.Data });
     }
 
     [AllowAnonymous]

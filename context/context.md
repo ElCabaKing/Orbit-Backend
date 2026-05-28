@@ -237,6 +237,7 @@ NO usar vistas para conteos críticos.
 - user_roles
 - user_prefixes
 - posts
+- post_media
 - post_likes
 - comments
 - follows
@@ -417,11 +418,14 @@ Cloudinary.
 
 El backend NO almacenará archivos binarios.
 
-Solo se almacena en DB:
+Se almacena en DB mediante entidad `PostMedia`:
 
 - URL
 - public_id
-- metadata (media_type: "image" | "video")
+- media_type ("image" | "video")
+- order (índice de orden para posts con múltiples medios)
+- width, height, size_bytes, format, duration_seconds (metadatos de Cloudinary)
+- Un post puede tener múltiples `PostMedia` (máximo 10)
 
 ## Carpetas en Cloudinary
 
@@ -537,7 +541,7 @@ NO retornar entidades EF.
 Todos los endpoints retornan:
 
 ```json
-{ "isSuccess": true/false, "message": "...", "data": ..., "errors": [...] }
+{ "isSuccess": true/false, "message": "...", "data": { ... }, "errors": [...] }
 ```
 
 ## Paginación
@@ -627,11 +631,11 @@ Pendiente (Render planeado).
 
 ## ✅ Posts
 
-- ✅ crear posts (con o sin media, Cloudinary)
+- ✅ crear posts (con o sin media, Cloudinary, multi-media con hasta 10 archivos)
 - ✅ timeline cronológico con paginación
 - ✅ posts por perfil (/api/profiles/{username}/posts)
-- ✅ editar post (solo owner, contenido)
-- ✅ eliminar post (soft delete, decrementa posts_count, borra media de Cloudinary)
+- ✅ editar post (solo owner, contenido, reemplazo opcional de media)
+- ✅ eliminar post (soft delete, decrementa posts_count, borra todo el media de Cloudinary)
 - ✅ likes (toggle POST/DELETE, unique index, denormalized like_count)
 - ✅ comentarios CRUD (solo owner o post author pueden eliminar)
 - ⬜ reposts

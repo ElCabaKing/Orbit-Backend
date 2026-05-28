@@ -14,11 +14,15 @@ public class CreatePostValidator : AbstractValidator<CreatePostRequest>
             .NotEmpty().WithMessage("Content is required")
             .MaximumLength(1000).WithMessage("Content must not exceed 1000 characters");
 
-        When(x => x.Media is not null, () =>
+        When(x => x.Media is not null && x.Media.Count > 0, () =>
         {
+            RuleForEach(x => x.Media!)
+                .Must(BeValidExtension).WithMessage("Each file must be jpg, jpeg, png, webp, gif, mp4, mov, avi or webm")
+                .Must(f => f.Length <= MaxFileSize).WithMessage("Each file must not exceed 10MB");
+
             RuleFor(x => x.Media!)
-                .Must(BeValidExtension).WithMessage("Media must be jpg, jpeg, png, webp, gif, mp4, mov, avi or webm")
-                .Must(f => f.Length <= MaxFileSize).WithMessage("Media must not exceed 10MB");
+                .Must(media => media.Count <= 10)
+                .WithMessage("Maximum 10 files allowed per post");
         });
     }
 

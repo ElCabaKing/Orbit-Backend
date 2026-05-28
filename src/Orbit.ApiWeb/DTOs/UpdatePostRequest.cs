@@ -1,5 +1,7 @@
 namespace Orbit.ApiWeb.DTOs;
 
-public record UpdatePostRequest(
-    string Content
-);
+public class UpdatePostRequest
+{
+    public string Content { get; set; } = null!;
+    public List<IFormFile>? Media { get; set; }
+}

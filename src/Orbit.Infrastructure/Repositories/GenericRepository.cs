@@ -64,6 +64,11 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
         await SaveChangesAsync();
     }
 
+    public virtual async Task AddEntityAsync(T entity)
+    {
+        await DbSet.AddAsync(entity);
+    }
+
     public virtual void Update(T entity)
     {
         DbSet.Update(entity);

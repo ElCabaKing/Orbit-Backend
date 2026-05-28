@@ -21,18 +21,6 @@ public class PostConfiguration : IEntityTypeConfiguration<Post>
             .HasMaxLength(1000)
             .IsRequired();
 
-        builder.Property(p => p.MediaUrl)
-            .HasColumnName("media_url")
-            .HasMaxLength(1000);
-
-        builder.Property(p => p.MediaPublicId)
-            .HasColumnName("media_public_id")
-            .HasMaxLength(500);
-
-        builder.Property(p => p.MediaType)
-            .HasColumnName("media_type")
-            .HasMaxLength(20);
-
         builder.Property(p => p.LikeCount)
             .HasColumnName("like_count")
             .HasDefaultValue(0);
