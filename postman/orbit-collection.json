@@ -234,7 +234,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"Password123\"\n}"
+              "raw": "{\n  \"emailOrUsername\": \"john@example.com\",\n  \"password\": \"Password123\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/login",
@@ -268,7 +268,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"WrongPassword1\"\n}"
+              "raw": "{\n  \"emailOrUsername\": \"john@example.com\",\n  \"password\": \"WrongPassword1\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/login",
@@ -298,7 +298,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"noone@example.com\",\n  \"password\": \"DoesntMatter1\"\n}"
+              "raw": "{\n  \"emailOrUsername\": \"noone@example.com\",\n  \"password\": \"DoesntMatter1\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/login",
@@ -497,7 +497,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"john@example.com\",\n  \"token\": \"ABC123\",\n  \"newPassword\": \"NewSecureP4ss\"\n}"
+              "raw": "{\n  \"emailOrUsername\": \"john@example.com\",\n  \"token\": \"ABC123\",\n  \"newPassword\": \"NewSecureP4ss\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/reset-password",
@@ -531,7 +531,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"john@example.com\",\n  \"token\": \"WRONG1\",\n  \"newPassword\": \"NewSecureP4ss\"\n}"
+              "raw": "{\n  \"emailOrUsername\": \"john@example.com\",\n  \"token\": \"WRONG1\",\n  \"newPassword\": \"NewSecureP4ss\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/reset-password",

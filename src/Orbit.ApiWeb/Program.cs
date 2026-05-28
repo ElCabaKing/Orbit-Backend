@@ -27,7 +27,15 @@ builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<IFollowService, FollowService>();
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterValidator>();
 
-var frontendUrl = Environment.GetEnvironmentVariable(EnvironmentConstants.FrontendUrl) ?? "http://localhost:4200";
+var frontendUrl = Environment.GetEnvironmentVariable(EnvironmentConstants.FrontendUrl);
+var frontendUrlDev = Environment.GetEnvironmentVariable(EnvironmentConstants.FrontendUrlDev);
+
+var frontendUrls = new List<string>();
+if (!string.IsNullOrWhiteSpace(frontendUrl)) frontendUrls.Add(frontendUrl);
+if (!string.IsNullOrWhiteSpace(frontendUrlDev) && frontendUrlDev != frontendUrl) frontendUrls.Add(frontendUrlDev);
+
+if (frontendUrls.Count == 0)
+    frontendUrls.Add("http://localhost:4200");
 var jwtSecret = Environment.GetEnvironmentVariable(EnvironmentConstants.JwtSecret) ?? string.Empty;
 var jwtIssuer = Environment.GetEnvironmentVariable(EnvironmentConstants.JwtIssuer) ?? DefaultsConstants.JwtIssuer;
 var jwtAudience = Environment.GetEnvironmentVariable(EnvironmentConstants.JwtAudience) ?? DefaultsConstants.JwtAudience;
@@ -51,7 +59,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
-        policy.WithOrigins(frontendUrl)
+        policy.WithOrigins([.. frontendUrls])
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials());
