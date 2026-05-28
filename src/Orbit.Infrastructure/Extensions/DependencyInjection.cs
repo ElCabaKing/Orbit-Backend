@@ -102,12 +102,13 @@ public static class DependencyInjection
             Port = int.TryParse(Environment.GetEnvironmentVariable(EnvironmentConstants.SmtpPort), out var port) ? port : DefaultsConstants.SmtpPort,
             Username = Environment.GetEnvironmentVariable(EnvironmentConstants.SmtpUsername) ?? string.Empty,
             Password = Environment.GetEnvironmentVariable(EnvironmentConstants.SmtpPassword) ?? string.Empty,
+            ApiKey = Environment.GetEnvironmentVariable(EnvironmentConstants.BrevoApiKey) ?? string.Empty,
             FromName = Environment.GetEnvironmentVariable(EnvironmentConstants.SmtpFromName) ?? DefaultsConstants.SmtpFromName,
             FromEmail = Environment.GetEnvironmentVariable(EnvironmentConstants.SmtpFromEmail) ?? DefaultsConstants.SmtpFromEmail,
         };
 
         services.AddSingleton(mailOptions);
-        services.AddScoped<IEmailService, EmailService>();
+        services.AddHttpClient<IEmailService, EmailService>();
 
         return services;
     }

@@ -24,5 +24,6 @@ public static class EnvironmentConstants
     public const string SmtpFromName = "SMTP__FROMNAME";
     public const string SmtpFromEmail = "SMTP__FROMEMAIL";
 
+    public const string BrevoApiKey = "BREVO_API_KEY";
     public const string FrontendUrl = "FRONTEND_URL";
 }

@@ -264,6 +264,9 @@ public class AuthService : IAuthService
 
         if (authUser is not null)
         {
+            var profile = await _profileRepo.FirstOrDefaultAsync(p => p.AuthUserId == authUser.Id);
+            var toName = profile?.DisplayName ?? normalizedEmail.Split('@')[0];
+
             var token = GenerateResetToken();
             await _resetTokenService.SaveTokenAsync(normalizedEmail, token, TimeSpan.FromMinutes(15));
 
@@ -284,7 +287,7 @@ public class AuthService : IAuthService
             </html>
             """;
 
-            await _emailService.SendAsync(normalizedEmail, "", "Orbit - Password Reset", htmlBody);
+            await _emailService.SendAsync(normalizedEmail, toName, "Orbit - Password Reset", htmlBody);
         }
 
         return Result.Success(ResponseMessages.CheckYourInbox);

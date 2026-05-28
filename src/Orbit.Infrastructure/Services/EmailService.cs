@@ -1,8 +1,5 @@
-using System.Net.Security;
-using System.Security.Cryptography.X509Certificates;
-using MailKit.Net.Smtp;
-using MailKit.Security;
-using MimeKit;
+using System.Text;
+using System.Text.Json;
 using Orbit.Application.Interfaces;
 
 namespace Orbit.Infrastructure.Services;
@@ -10,36 +7,36 @@ namespace Orbit.Infrastructure.Services;
 public class EmailService : IEmailService
 {
     private readonly MailOptions _options;
+    private readonly HttpClient _httpClient;
 
-    public EmailService(MailOptions options)
+    public EmailService(MailOptions options, HttpClient httpClient)
     {
         _options = options;
+        _httpClient = httpClient;
     }
 
     public async Task SendAsync(string toEmail, string toName, string subject, string htmlBody)
     {
-        var message = new MimeMessage();
-        message.From.Add(new MailboxAddress(_options.FromName, _options.FromEmail));
-        message.To.Add(new MailboxAddress(toName, toEmail));
-        message.Subject = subject;
-
-        var bodyBuilder = new BodyBuilder
+        var payload = new
         {
-            HtmlBody = htmlBody,
+            sender = new { name = _options.FromName, email = _options.FromEmail },
+            to = new[] { new { email = toEmail, name = toName } },
+            subject,
+            htmlContent = htmlBody
         };
-        message.Body = bodyBuilder.ToMessageBody();
 
-        using var client = new SmtpClient();
-        client.ServerCertificateValidationCallback = CertificateValidationCallback;
-        await client.ConnectAsync(_options.Host, _options.Port, SecureSocketOptions.Auto);
-        await client.AuthenticateAsync(_options.Username, _options.Password);
-        await client.SendAsync(message);
-        await client.DisconnectAsync(true);
-    }
+        var json = JsonSerializer.Serialize(payload);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-    private static bool CertificateValidationCallback(object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors errors)
-    {
-        return errors == SslPolicyErrors.None
-            || errors == SslPolicyErrors.RemoteCertificateNameMismatch;
+        var request = new HttpRequestMessage(HttpMethod.Post, "https://api.brevo.com/v3/smtp/email");
+        request.Headers.Add("api-key", _options.ApiKey);
+        request.Content = content;
+
+        var response = await _httpClient.SendAsync(request);
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorBody = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException($"Brevo API error: {response.StatusCode} - {errorBody}");
+        }
     }
 }
