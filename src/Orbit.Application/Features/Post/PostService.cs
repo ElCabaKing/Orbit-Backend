@@ -41,7 +41,8 @@ public class PostService : IPostService
 
         if (mediaStream is not null && !string.IsNullOrEmpty(mediaFileName))
         {
-            var fileName = $"{profile.Id}_{Guid.NewGuid()}";
+            var ext = Path.GetExtension(mediaFileName);
+            var fileName = $"{profile.Id}_{Guid.NewGuid()}{ext}";
             var uploadResult = await _cloudinaryService.UploadAsync(mediaStream, fileName, CloudinaryFolder.PostMedia);
 
             if (uploadResult.IsSuccess && uploadResult.Data is not null)

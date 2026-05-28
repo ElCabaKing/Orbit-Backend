@@ -63,7 +63,8 @@ public class ProfileService : IProfileService
             await _cloudinaryService.DeleteAsync(profile.ProfilePicturePublicId);
         }
 
-        var uploadFileName = $"{authUserId}_{Guid.NewGuid()}";
+        var ext = Path.GetExtension(fileName);
+        var uploadFileName = $"{authUserId}_{Guid.NewGuid()}{ext}";
         var uploadResult = await _cloudinaryService.UploadAsync(fileStream, uploadFileName, CloudinaryFolder.ProfilePics);
 
         if (!uploadResult.IsSuccess || uploadResult.Data is null)
@@ -111,7 +112,8 @@ public class ProfileService : IProfileService
             await _cloudinaryService.DeleteAsync(profile.BannerPublicId);
         }
 
-        var uploadFileName = $"{authUserId}_{Guid.NewGuid()}";
+        var ext = Path.GetExtension(fileName);
+        var uploadFileName = $"{authUserId}_{Guid.NewGuid()}{ext}";
         var uploadResult = await _cloudinaryService.UploadAsync(fileStream, uploadFileName, CloudinaryFolder.ProfileBanners);
 
         if (!uploadResult.IsSuccess || uploadResult.Data is null)
