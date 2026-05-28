@@ -81,7 +81,7 @@ public class AuthController : ControllerBase
             return BadRequest(new { isSuccess = false, message = ResponseMessages.ValidationFailed, errors });
         }
 
-        var result = await _authService.LoginAsync(request.Email, request.Password);
+        var result = await _authService.LoginAsync(request.EmailOrUsername, request.Password);
 
         if (!result.IsSuccess)
         {

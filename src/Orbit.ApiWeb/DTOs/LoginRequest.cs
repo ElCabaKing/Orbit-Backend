@@ -1,6 +1,6 @@
 namespace Orbit.ApiWeb.DTOs;
 
 public record LoginRequest(
-    string Email,
+    string EmailOrUsername,
     string Password
 );

@@ -8,9 +8,8 @@ public class LoginValidator : AbstractValidator<LoginRequest>
 {
     public LoginValidator()
     {
-        RuleFor(x => x.Email)
-            .NotEmpty().WithMessage(ValidationConstants.EmailRequired)
-            .EmailAddress().WithMessage(ValidationConstants.EmailInvalidFormat);
+        RuleFor(x => x.EmailOrUsername)
+            .NotEmpty().WithMessage(ValidationConstants.EmailOrUsernameRequired);
 
         RuleFor(x => x.Password)
             .NotEmpty().WithMessage(ValidationConstants.PasswordRequired);

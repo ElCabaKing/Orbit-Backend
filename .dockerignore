@@ -1,0 +1,10 @@
+**/bin/
+**/obj/
+.git/
+.gitignore
+.env
+postman/
+context/
+**/*.md
+**/appsettings.Development.json
+**/launchSettings.json

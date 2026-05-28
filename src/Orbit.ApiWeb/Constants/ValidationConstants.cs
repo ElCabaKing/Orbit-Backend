@@ -6,6 +6,7 @@ public static class ValidationConstants
     public const string EmailRequired = "Email is required";
     public const string EmailMaxLength = "Email must not exceed 255 characters";
     public const string EmailInvalidFormat = "Invalid email format";
+    public const string EmailOrUsernameRequired = "Email or username is required";
 
     // Auth - Username
     public const string UsernameRequired = "Username is required";

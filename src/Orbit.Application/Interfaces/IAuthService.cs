@@ -14,7 +14,7 @@ public interface IAuthService
         string? profilePictureFileName,
         string? bio);
 
-    Task<Result<AuthResponse>> LoginAsync(string email, string password);
+    Task<Result<AuthResponse>> LoginAsync(string emailOrUsername, string password);
     Task<Result<AuthResponse>> RefreshTokenAsync(string accessToken, string refreshToken);
     Task<Result> LogoutAsync(string refreshToken);
     Task<Result<ProfileResponse>> GetCurrentUserAsync(Guid authUserId);

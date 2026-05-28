@@ -121,9 +121,17 @@ public class AuthService : IAuthService
         ), ResponseMessages.RegistrationSuccessful);
     }
 
-    public async Task<Result<AuthResponse>> LoginAsync(string email, string password)
+    public async Task<Result<AuthResponse>> LoginAsync(string emailOrUsername, string password)
     {
-        var authUser = await _authUserRepo.FirstOrDefaultAsync(u => u.Email == email);
+        var authUser = await _authUserRepo.FirstOrDefaultAsync(u => u.Email == emailOrUsername);
+
+        if (authUser is null)
+        {
+            var profileByUsername = await _profileRepo.FirstOrDefaultAsync(p => p.Username == emailOrUsername);
+            if (profileByUsername is not null)
+                authUser = await _authUserRepo.FirstOrDefaultAsync(u => u.Id == profileByUsername.AuthUserId);
+        }
+
         if (authUser is null)
             return Result<AuthResponse>.Failure(ResponseMessages.InvalidCredentials);
 
