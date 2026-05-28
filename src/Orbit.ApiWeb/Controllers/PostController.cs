@@ -2,6 +2,7 @@ using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Orbit.ApiWeb.Constants;
 using Orbit.ApiWeb.DTOs;
 using Orbit.Application.Constants;
 using Orbit.Application.DTOs;
@@ -100,7 +101,7 @@ public class PostController : ControllerBase
     public async Task<IActionResult> Update(Guid id, [FromForm] UpdatePostRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Content) || request.Content.Length > 1000)
-            return BadRequest(new { isSuccess = false, message = "Content is required and must not exceed 1000 characters" });
+            return BadRequest(new { isSuccess = false, message = ValidationConstants.ContentRequiredAndMaxLength });
 
         var authUserId = GetAuthUserId();
         if (authUserId is null)

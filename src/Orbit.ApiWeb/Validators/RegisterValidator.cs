@@ -1,4 +1,5 @@
 using FluentValidation;
+using Orbit.ApiWeb.Constants;
 using Orbit.ApiWeb.DTOs;
 
 namespace Orbit.ApiWeb.Validators;
@@ -11,33 +12,33 @@ public class RegisterValidator : AbstractValidator<RegisterRequest>
     public RegisterValidator()
     {
         RuleFor(x => x.Email)
-            .NotEmpty().WithMessage("Email is required")
-            .MaximumLength(255).WithMessage("Email must not exceed 255 characters")
-            .EmailAddress().WithMessage("Invalid email format");
+            .NotEmpty().WithMessage(ValidationConstants.EmailRequired)
+            .MaximumLength(255).WithMessage(ValidationConstants.EmailMaxLength)
+            .EmailAddress().WithMessage(ValidationConstants.EmailInvalidFormat);
 
         RuleFor(x => x.Username)
-            .NotEmpty().WithMessage("Username is required")
-            .Length(3, 30).WithMessage("Username must be between 3 and 30 characters")
-            .Matches("^[a-zA-Z0-9_]+$").WithMessage("Username can only contain letters, numbers and underscores");
+            .NotEmpty().WithMessage(ValidationConstants.UsernameRequired)
+            .Length(3, 30).WithMessage(ValidationConstants.UsernameLength)
+            .Matches("^[a-zA-Z0-9_]+$").WithMessage(ValidationConstants.UsernameInvalidChars);
 
         RuleFor(x => x.DisplayName)
-            .NotEmpty().WithMessage("Display name is required")
-            .MaximumLength(100).WithMessage("Display name must not exceed 100 characters");
+            .NotEmpty().WithMessage(ValidationConstants.DisplayNameRequired)
+            .MaximumLength(100).WithMessage(ValidationConstants.DisplayNameMaxLength);
 
         RuleFor(x => x.Password)
-            .NotEmpty().WithMessage("Password is required")
-            .MinimumLength(8).WithMessage("Password must be at least 8 characters")
-            .Matches("[A-Z]").WithMessage("Password must contain at least one uppercase letter")
-            .Matches("[0-9]").WithMessage("Password must contain at least one number");
+            .NotEmpty().WithMessage(ValidationConstants.PasswordRequired)
+            .MinimumLength(8).WithMessage(ValidationConstants.PasswordMinLength)
+            .Matches("[A-Z]").WithMessage(ValidationConstants.PasswordUppercase)
+            .Matches("[0-9]").WithMessage(ValidationConstants.PasswordNumber);
 
         RuleFor(x => x.Bio)
-            .MaximumLength(500).WithMessage("Bio must not exceed 500 characters");
+            .MaximumLength(500).WithMessage(ValidationConstants.BioMaxLength);
 
         When(x => x.ProfilePicture is not null, () =>
         {
             RuleFor(x => x.ProfilePicture!)
-                .Must(BeValidExtension).WithMessage("Profile picture must be jpg, jpeg, png or webp")
-                .Must(f => f.Length <= MaxFileSize).WithMessage("Profile picture must not exceed 5MB");
+                .Must(BeValidExtension).WithMessage(ValidationConstants.PictureInvalidExtension)
+                .Must(f => f.Length <= MaxFileSize).WithMessage(ValidationConstants.PictureMaxSize);
         });
     }
 

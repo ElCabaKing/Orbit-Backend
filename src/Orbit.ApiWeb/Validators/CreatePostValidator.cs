@@ -1,4 +1,5 @@
 using FluentValidation;
+using Orbit.ApiWeb.Constants;
 using Orbit.ApiWeb.DTOs;
 
 namespace Orbit.ApiWeb.Validators;
@@ -11,18 +12,18 @@ public class CreatePostValidator : AbstractValidator<CreatePostRequest>
     public CreatePostValidator()
     {
         RuleFor(x => x.Content)
-            .NotEmpty().WithMessage("Content is required")
-            .MaximumLength(1000).WithMessage("Content must not exceed 1000 characters");
+            .NotEmpty().WithMessage(ValidationConstants.ContentRequired)
+            .MaximumLength(1000).WithMessage(ValidationConstants.ContentMaxLength);
 
         When(x => x.Media is not null && x.Media.Count > 0, () =>
         {
             RuleForEach(x => x.Media!)
-                .Must(BeValidExtension).WithMessage("Each file must be jpg, jpeg, png, webp, gif, mp4, mov, avi or webm")
-                .Must(f => f.Length <= MaxFileSize).WithMessage("Each file must not exceed 10MB");
+                .Must(BeValidExtension).WithMessage(ValidationConstants.MediaInvalidExtension)
+                .Must(f => f.Length <= MaxFileSize).WithMessage(ValidationConstants.MediaMaxSize);
 
             RuleFor(x => x.Media!)
                 .Must(media => media.Count <= 10)
-                .WithMessage("Maximum 10 files allowed per post");
+                .WithMessage(ValidationConstants.MediaMaxCount);
         });
     }
 
