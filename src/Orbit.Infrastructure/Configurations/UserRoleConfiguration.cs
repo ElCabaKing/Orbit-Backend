@@ -29,6 +29,8 @@ public class UserRoleConfiguration : IEntityTypeConfiguration<UserRole>
             .HasForeignKey(ur => ur.ProfileId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasQueryFilter(ur => ur.Profile.IsActive);
+
         builder.HasOne(ur => ur.Role)
             .WithMany(r => r.UserRoles)
             .HasForeignKey(ur => ur.RoleId)

@@ -39,9 +39,17 @@ public class ProfileConfiguration : IEntityTypeConfiguration<Profile>
             .HasColumnName("profile_picture_url")
             .HasMaxLength(1000);
 
+        builder.Property(p => p.ProfilePicturePublicId)
+            .HasColumnName("profile_picture_public_id")
+            .HasMaxLength(500);
+
         builder.Property(p => p.BannerUrl)
             .HasColumnName("banner_url")
             .HasMaxLength(1000);
+
+        builder.Property(p => p.BannerPublicId)
+            .HasColumnName("banner_public_id")
+            .HasMaxLength(500);
 
         builder.Property(p => p.PrefixId)
             .HasColumnName("prefix_id");

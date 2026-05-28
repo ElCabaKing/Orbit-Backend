@@ -32,6 +32,8 @@ public class UserSessionConfiguration : IEntityTypeConfiguration<UserSession>
         builder.HasIndex(s => s.AuthUserId)
             .HasDatabaseName("ix_user_sessions_auth_user");
 
+        builder.HasQueryFilter(s => s.AuthUser.IsActive);
+
         builder.HasOne(s => s.AuthUser)
             .WithMany(u => u.UserSessions)
             .HasForeignKey(s => s.AuthUserId)

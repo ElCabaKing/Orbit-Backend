@@ -11,6 +11,13 @@ public interface IGenericRepository<T> where T : BaseEntity
     Task<List<T>> GetListAsync(Expression<Func<T, bool>> predicate);
     Task CreateAsync(T entity);
     void Update(T entity);
+    void Remove(T entity);
     Task DeleteAsync(Guid id);
+    Task<int> CountAsync(Expression<Func<T, bool>> predicate);
+    Task<List<T>> GetPagedAsync<TKey>(
+        Expression<Func<T, bool>> predicate,
+        Expression<Func<T, TKey>> orderByDescending,
+        int skip,
+        int take);
     Task SaveChangesAsync();
 }

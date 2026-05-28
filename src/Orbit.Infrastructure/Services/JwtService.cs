@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
+using Orbit.Application.Constants;
 using Orbit.Application.Interfaces;
 
 namespace Orbit.Infrastructure.Services;
@@ -24,7 +25,7 @@ public class JwtService : IJwtService
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, authUserId.ToString()),
-            new Claim("profile_id", profileId.ToString()),
+            new Claim(ClaimConstants.ProfileId, profileId.ToString()),
             new Claim(JwtRegisteredClaimNames.UniqueName, username),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         };

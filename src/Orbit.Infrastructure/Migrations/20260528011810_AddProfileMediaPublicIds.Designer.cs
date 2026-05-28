@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Orbit.Infrastructure.DbContext;
 
@@ -11,9 +12,11 @@ using Orbit.Infrastructure.DbContext;
 namespace Orbit.Infrastructure.Migrations
 {
     [DbContext(typeof(OrbitDbContext))]
-    partial class OrbitDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260528011810_AddProfileMediaPublicIds")]
+    partial class AddProfileMediaPublicIds
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -71,194 +74,6 @@ namespace Orbit.Infrastructure.Migrations
                         .HasDatabaseName("ux_auth_users_email");
 
                     b.ToTable("auth_users", (string)null);
-                });
-
-            modelBuilder.Entity("Orbit.Domain.Entities.Comment", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("content");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("SYSUTCDATETIME()");
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true)
-                        .HasColumnName("is_active");
-
-                    b.Property<Guid>("PostId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("post_id");
-
-                    b.Property<Guid>("ProfileId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("profile_id");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasColumnName("updated_at")
-                        .HasDefaultValueSql("SYSUTCDATETIME()");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PostId")
-                        .HasDatabaseName("ix_comments_post_id");
-
-                    b.HasIndex("ProfileId")
-                        .HasDatabaseName("ix_comments_profile_id");
-
-                    b.ToTable("comments", (string)null);
-                });
-
-            modelBuilder.Entity("Orbit.Domain.Entities.Follow", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("SYSUTCDATETIME()");
-
-                    b.Property<Guid>("FollowerId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("follower_id");
-
-                    b.Property<Guid>("FollowingId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("following_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FollowerId")
-                        .HasDatabaseName("ix_follows_follower");
-
-                    b.HasIndex("FollowingId")
-                        .HasDatabaseName("ix_follows_following");
-
-                    b.HasIndex("FollowerId", "FollowingId")
-                        .IsUnique()
-                        .HasDatabaseName("ux_follows_follower_following");
-
-                    b.ToTable("follows", (string)null);
-                });
-
-            modelBuilder.Entity("Orbit.Domain.Entities.Post", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("CommentCount")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0)
-                        .HasColumnName("comment_count");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)")
-                        .HasColumnName("content");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("SYSUTCDATETIME()");
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true)
-                        .HasColumnName("is_active");
-
-                    b.Property<int>("LikeCount")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0)
-                        .HasColumnName("like_count");
-
-                    b.Property<string>("MediaPublicId")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("media_public_id");
-
-                    b.Property<string>("MediaType")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
-                        .HasColumnName("media_type");
-
-                    b.Property<string>("MediaUrl")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)")
-                        .HasColumnName("media_url");
-
-                    b.Property<Guid>("ProfileId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("profile_id");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasColumnName("updated_at")
-                        .HasDefaultValueSql("SYSUTCDATETIME()");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedAt")
-                        .HasDatabaseName("ix_posts_created_at");
-
-                    b.HasIndex("ProfileId")
-                        .HasDatabaseName("ix_posts_profile_id");
-
-                    b.ToTable("posts", (string)null);
-                });
-
-            modelBuilder.Entity("Orbit.Domain.Entities.PostLike", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("SYSUTCDATETIME()");
-
-                    b.Property<Guid>("PostId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("post_id");
-
-                    b.Property<Guid>("ProfileId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("profile_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PostId")
-                        .HasDatabaseName("ix_post_likes_post_id");
-
-                    b.HasIndex("ProfileId", "PostId")
-                        .IsUnique()
-                        .HasDatabaseName("ux_post_likes_profile_post");
-
-                    b.ToTable("post_likes", (string)null);
                 });
 
             modelBuilder.Entity("Orbit.Domain.Entities.Profile", b =>
@@ -516,74 +331,6 @@ namespace Orbit.Infrastructure.Migrations
                     b.ToTable("user_sessions", (string)null);
                 });
 
-            modelBuilder.Entity("Orbit.Domain.Entities.Comment", b =>
-                {
-                    b.HasOne("Orbit.Domain.Entities.Post", "Post")
-                        .WithMany("Comments")
-                        .HasForeignKey("PostId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Orbit.Domain.Entities.Profile", "Profile")
-                        .WithMany()
-                        .HasForeignKey("ProfileId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("Post");
-
-                    b.Navigation("Profile");
-                });
-
-            modelBuilder.Entity("Orbit.Domain.Entities.Follow", b =>
-                {
-                    b.HasOne("Orbit.Domain.Entities.Profile", "Follower")
-                        .WithMany()
-                        .HasForeignKey("FollowerId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Orbit.Domain.Entities.Profile", "Following")
-                        .WithMany()
-                        .HasForeignKey("FollowingId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("Follower");
-
-                    b.Navigation("Following");
-                });
-
-            modelBuilder.Entity("Orbit.Domain.Entities.Post", b =>
-                {
-                    b.HasOne("Orbit.Domain.Entities.Profile", "Profile")
-                        .WithMany()
-                        .HasForeignKey("ProfileId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Profile");
-                });
-
-            modelBuilder.Entity("Orbit.Domain.Entities.PostLike", b =>
-                {
-                    b.HasOne("Orbit.Domain.Entities.Post", "Post")
-                        .WithMany("PostLikes")
-                        .HasForeignKey("PostId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Orbit.Domain.Entities.Profile", "Profile")
-                        .WithMany()
-                        .HasForeignKey("ProfileId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("Post");
-
-                    b.Navigation("Profile");
-                });
-
             modelBuilder.Entity("Orbit.Domain.Entities.Profile", b =>
                 {
                     b.HasOne("Orbit.Domain.Entities.AuthUser", "AuthUser")
@@ -638,13 +385,6 @@ namespace Orbit.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("UserSessions");
-                });
-
-            modelBuilder.Entity("Orbit.Domain.Entities.Post", b =>
-                {
-                    b.Navigation("Comments");
-
-                    b.Navigation("PostLikes");
                 });
 
             modelBuilder.Entity("Orbit.Domain.Entities.Profile", b =>

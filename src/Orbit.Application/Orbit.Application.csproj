@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Orbit.Domain\Orbit.Domain.csproj" />
+    <ProjectReference Include="..\Orbit.Shared\Orbit.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>

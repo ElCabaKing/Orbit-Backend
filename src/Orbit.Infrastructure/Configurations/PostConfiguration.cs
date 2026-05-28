@@ -1,0 +1,69 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Orbit.Domain.Entities;
+
+namespace Orbit.Infrastructure.Configurations;
+
+public class PostConfiguration : IEntityTypeConfiguration<Post>
+{
+    public void Configure(EntityTypeBuilder<Post> builder)
+    {
+        builder.ToTable("posts");
+
+        builder.HasKey(p => p.Id);
+
+        builder.Property(p => p.ProfileId)
+            .HasColumnName("profile_id")
+            .IsRequired();
+
+        builder.Property(p => p.Content)
+            .HasColumnName("content")
+            .HasMaxLength(1000)
+            .IsRequired();
+
+        builder.Property(p => p.MediaUrl)
+            .HasColumnName("media_url")
+            .HasMaxLength(1000);
+
+        builder.Property(p => p.MediaPublicId)
+            .HasColumnName("media_public_id")
+            .HasMaxLength(500);
+
+        builder.Property(p => p.MediaType)
+            .HasColumnName("media_type")
+            .HasMaxLength(20);
+
+        builder.Property(p => p.LikeCount)
+            .HasColumnName("like_count")
+            .HasDefaultValue(0);
+
+        builder.Property(p => p.CommentCount)
+            .HasColumnName("comment_count")
+            .HasDefaultValue(0);
+
+        builder.Property(p => p.IsActive)
+            .HasColumnName("is_active")
+            .HasDefaultValue(true);
+
+        builder.Property(p => p.CreatedAt)
+            .HasColumnName("created_at")
+            .HasDefaultValueSql("SYSUTCDATETIME()");
+
+        builder.Property(p => p.UpdatedAt)
+            .HasColumnName("updated_at")
+            .HasDefaultValueSql("SYSUTCDATETIME()");
+
+        builder.HasIndex(p => p.ProfileId)
+            .HasDatabaseName("ix_posts_profile_id");
+
+        builder.HasIndex(p => p.CreatedAt)
+            .HasDatabaseName("ix_posts_created_at");
+
+        builder.HasOne(p => p.Profile)
+            .WithMany()
+            .HasForeignKey(p => p.ProfileId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasQueryFilter(p => p.IsActive);
+    }
+}

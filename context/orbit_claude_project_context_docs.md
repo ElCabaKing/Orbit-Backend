@@ -212,33 +212,44 @@ Las tablas serán generadas mediante migrations.
 - SQL en snake_case.
 - C# en PascalCase.
 - GUIDs como PK.
-- Soft delete mediante deleted_at.
+- Soft delete mediante `is_active` (BIT) con query filter global.
 - Índices en campos críticos.
 
 ## Conteos
 
 Los conteos importantes serán desnormalizados:
 
-- followers_count
-- following_count
-- likes_count
-- replies_count
-- reposts_count
+- followers_count ✓
+- following_count ✓
+- likes_count ✓
+- comment_count ✓
+- posts_count ✓
 - member_count
 
 NO usar vistas para conteos críticos.
 
-## Relaciones importantes
+## Tablas actuales
 
+- auth_users
+- profiles
+- user_sessions
+- roles
+- user_roles
+- user_prefixes
+- posts
+- post_likes
+- comments
 - follows
+
+## Pendientes
+
 - user_bans
 - muted_users
-- posts
-- post_media
-- communities
-- conversations
-- messages
+- communities / community_members
+- conversations / messages
 - notifications
+- reposts
+- bookmarks
 ```
 
 ---
@@ -296,11 +307,11 @@ El sistema de recuperación de contraseña funciona mediante tokens generados co
 - Token de un solo uso: se invalida al cambiarla contraseña.
 - El token debe ser un string seguro generado con criptografía aleatoria.
 
-## Rate Limiting
+## Rate Limiting (PENDIENTE)
 
-Implementado con Redis.
+Implementar con Redis.
 
-## Límites iniciales
+## Límites iniciales planeados
 
 | Acción | Límite |
 |---|---|
@@ -312,7 +323,7 @@ Implementado con Redis.
 | Uploads | 10/min |
 | Login attempts | 5/5min |
 
-## Bloqueos
+## Bloqueos (PENDIENTE)
 
 Si un usuario bloquea a otro:
 
@@ -328,14 +339,10 @@ El bloqueado NO podrá:
 - seguir
 - mencionar
 
-## Middleware
-
-Habrá middleware para:
+## Middleware (PENDIENTE)
 
 - manejo global de errores
-- JWT validation
-- logging
-- request tracking
+- logging / request tracking
 - rate limiting
 ```
 
@@ -410,31 +417,31 @@ Cloudinary.
 
 El backend NO almacenará archivos binarios.
 
-Solo se almacenará:
+Solo se almacena en DB:
 
 - URL
 - public_id
-- metadata
+- metadata (media_type: "image" | "video")
+
+## Carpetas en Cloudinary
+
+- `profile_pics`
+- `profile_banners`
+- `post_media`
 
 ## Límites
 
-### Imágenes
+### Imágenes (avatar, banner, post)
 
-- máximo: 5MB
+- máximo: 5MB (avatar/banner), 10MB (post media)
 
-### Videos
+### Videos (post media)
 
-- máximo: 15MB
+- máximo: 10MB
 
 ## Validaciones
 
-Se usarán decoradores/attributes personalizados.
-
-Ejemplos:
-
-- MaxFileSize
-- AllowedExtensions
-- AllowedMimeTypes
+Implementadas con FluentValidation en los validators.
 
 ## Tipos permitidos
 
@@ -444,10 +451,13 @@ Ejemplos:
 - jpeg
 - png
 - webp
+- gif
 
 ### Videos
 
 - mp4
+- mov
+- avi
 - webm
 ```
 
@@ -458,19 +468,23 @@ Ejemplos:
 ```md
 # Feed y Comunidades
 
-## Feed
+## Feed (IMPLEMENTADO)
 
-El feed será cronológico.
+El feed es cronológico con paginación.
+Endpoint: `GET /api/posts/timeline` (auth, muestra todos los posts activos)
+Endpoint: `GET /api/profiles/{username}/posts` (público, posts de un usuario)
+
+Pendiente: filtrar timeline por usuarios seguidos.
 
 ## Tipos de contenido
 
-- posts
-- reposts
-- replies
-- quote posts
-- publicaciones de comunidades
+- posts ✓
+- reposts (PENDIENTE)
+- replies (PENDIENTE como quotes, comments ya implementado)
+- quote posts (PENDIENTE)
+- publicaciones de comunidades (PENDIENTE)
 
-## Comunidades
+## Comunidades (PENDIENTE)
 
 Las comunidades tendrán:
 
@@ -491,7 +505,7 @@ Comunidades privadas:
 
 - solo miembros pueden visualizar contenido.
 
-## Moderación
+## Moderación (PENDIENTE)
 
 Moderadores globales podrán:
 
@@ -513,57 +527,67 @@ Usar Controllers estándar de ASP.NET Core.
 
 ## DTOs
 
-Todos los endpoints usarán DTOs.
+- Request DTOs en `Orbit.ApiWeb/DTOs/`
+- Response DTOs en `Orbit.Application/DTOs/`
 
 NO retornar entidades EF.
 
 ## Result Pattern
 
-Todos los endpoints retornarán:
+Todos los endpoints retornan:
 
-- success
-- message
-- data
-- errors opcionales
+```json
+{ "isSuccess": true/false, "message": "...", "data": ..., "errors": [...] }
+```
 
 ## Paginación
 
-Máximo 10 elementos por página.
+Implementada con `PagedResult<T>` + `GetPagedAsync` en GenericRepository.
+Máximo 100 elementos por página, default 20.
+Pendiente: cursor pagination.
 
-Preferir cursor pagination.
+## Validators
 
-## Logging
+Ubicados en `Orbit.ApiWeb/Validators/`.
+Registrados automáticamente via `AddValidatorsFromAssemblyContaining<RegisterValidator>()`.
+
+## Repositories
+
+Se usa `GenericRepository<T>` para todos los CRUD.
+`IGenericRepository<T>` en Application, implementación en Infrastructure.
+Soporta: GetByIdAsync, GetAllAsync, FirstOrDefaultAsync, GetListAsync, GetPagedAsync, CreateAsync, Update, Remove, DeleteAsync, CountAsync, SaveChangesAsync.
+
+## Soft Delete
+
+Implementado con `is_active` (BIT) + `ISoftDeletable` + query filter en configuraciones EF.
+`GenericRepository` aplica soft delete automáticamente en queries y delete.
+
+## Logging (PENDIENTE)
 
 Usar Serilog.
 
-## Testing
+## Testing (PENDIENTE)
 
 Solo testing crítico:
 
 - auth
-- chats
 - posts
 - follows
-- moderación
+- chats
 
 ## Docker
 
-Todo el sistema debe ser dockerizable.
+Docker compose con SQL Server 2022 + Redis 7 + RedisInsight.
 
 ## Deploy
 
-Render.
+Pendiente (Render planeado).
 
 ## Naming
 
 - PascalCase en C#
 - snake_case en SQL
 - REST conventions en endpoints
-
-## Soft Delete
-
-Usar `is_active` (BIT) con query filter global.
-`BaseEntity` + `ISoftDeletable` en Domain. `GenericRepository` aplica soft delete automáticamente.
 
 ## Código
 
@@ -578,65 +602,73 @@ Usar `is_active` (BIT) con query filter global.
 # 09_INITIAL_MVP.md
 
 ```md
-# MVP Inicial
+# MVP Inicial — Estado Actual
 
-## Features prioritarias
+✅ = Implementado  |  ⏳ = En progreso  |  ⬜ = Pendiente
 
-### Auth
+## ✅ Auth
 
-- register
-- login
-- refresh token
-- logout
-- password recovery (solicitar reset, resetear password)
+- ✅ register (con validación, BCrypt, profile picture opcional)
+- ✅ login (JWT access + refresh token, sin email enumeration)
+- ✅ refresh token (rotation: old revoked, new created)
+- ✅ logout (revoca refresh token)
+- ✅ password recovery (token alfanumérico 6 chars, Redis 15min TTL, email SMTP Brevo)
+- ✅ get current user (/api/auth/me)
 
-### Profiles
+## ✅ Profiles
 
-- editar perfil
-- seguir usuarios
-- bloquear usuarios
-- mute users
+- ✅ editar perfil (displayName, bio, isPrivate)
+- ✅ avatar CRUD (Cloudinary, reemplazo con delete de anterior)
+- ✅ banner CRUD (Cloudinary, reemplazo con delete de anterior)
+- ✅ get profile by username (público)
+- ✅ seguir usuarios (/api/profiles/{username}/follow)
+- ⬜ bloquear usuarios
+- ⬜ mute users
 
-### Posts
+## ✅ Posts
 
-- crear posts
-- replies
-- reposts
-- likes
-- bookmarks
-- hashtags
-- mentions
-- multimedia
+- ✅ crear posts (con o sin media, Cloudinary)
+- ✅ timeline cronológico con paginación
+- ✅ posts por perfil (/api/profiles/{username}/posts)
+- ✅ editar post (solo owner, contenido)
+- ✅ eliminar post (soft delete, decrementa posts_count, borra media de Cloudinary)
+- ✅ likes (toggle POST/DELETE, unique index, denormalized like_count)
+- ✅ comentarios CRUD (solo owner o post author pueden eliminar)
+- ⬜ reposts
+- ⬜ bookmarks
+- ⬜ hashtags
+- ⬜ mentions
 
-### Communities
+## ⬜ Communities
 
 - crear comunidad
 - unirse
 - expulsar miembros
 - eliminar posts
 
-### Chats
+## ⬜ Chats
 
 - chat privado
 - unread count
 - editar mensajes
 - eliminar mensajes
 
-### Notifications
+## ⬜ Notifications
 
-- realtime notifications
+- realtime notifications (SignalR)
 - mentions
 - likes
 - follows
 - chats
 
-## Infraestructura mínima
+## Infraestructura
 
-- SQL Server
-- Redis
-- SignalR
-- Hangfire
-- Cloudinary
-- Docker
+- ✅ SQL Server 2022 (Docker)
+- ✅ Redis 7 (Docker, para reset tokens)
+- ✅ Cloudinary (media upload)
+- ✅ Docker compose (sqlserver + redis + redisinsight)
+- ⬜ SignalR (pendiente)
+- ⬜ Hangfire (pendiente)
+- ⬜ Serilog (pendiente)
 ```
 

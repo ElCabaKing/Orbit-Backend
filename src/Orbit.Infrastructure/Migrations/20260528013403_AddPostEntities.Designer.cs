@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Orbit.Infrastructure.DbContext;
 
@@ -11,9 +12,11 @@ using Orbit.Infrastructure.DbContext;
 namespace Orbit.Infrastructure.Migrations
 {
     [DbContext(typeof(OrbitDbContext))]
-    partial class OrbitDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260528013403_AddPostEntities")]
+    partial class AddPostEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -120,41 +123,6 @@ namespace Orbit.Infrastructure.Migrations
                         .HasDatabaseName("ix_comments_profile_id");
 
                     b.ToTable("comments", (string)null);
-                });
-
-            modelBuilder.Entity("Orbit.Domain.Entities.Follow", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("SYSUTCDATETIME()");
-
-                    b.Property<Guid>("FollowerId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("follower_id");
-
-                    b.Property<Guid>("FollowingId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("following_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FollowerId")
-                        .HasDatabaseName("ix_follows_follower");
-
-                    b.HasIndex("FollowingId")
-                        .HasDatabaseName("ix_follows_following");
-
-                    b.HasIndex("FollowerId", "FollowingId")
-                        .IsUnique()
-                        .HasDatabaseName("ux_follows_follower_following");
-
-                    b.ToTable("follows", (string)null);
                 });
 
             modelBuilder.Entity("Orbit.Domain.Entities.Post", b =>
@@ -533,25 +501,6 @@ namespace Orbit.Infrastructure.Migrations
                     b.Navigation("Post");
 
                     b.Navigation("Profile");
-                });
-
-            modelBuilder.Entity("Orbit.Domain.Entities.Follow", b =>
-                {
-                    b.HasOne("Orbit.Domain.Entities.Profile", "Follower")
-                        .WithMany()
-                        .HasForeignKey("FollowerId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Orbit.Domain.Entities.Profile", "Following")
-                        .WithMany()
-                        .HasForeignKey("FollowingId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("Follower");
-
-                    b.Navigation("Following");
                 });
 
             modelBuilder.Entity("Orbit.Domain.Entities.Post", b =>

@@ -5,6 +5,7 @@ using Orbit.Application.Interfaces;
 using Orbit.Infrastructure.DbContext;
 using Orbit.Infrastructure.Repositories;
 using Orbit.Infrastructure.Services;
+using Orbit.Shared.Constants;
 
 namespace Orbit.Infrastructure.Extensions;
 
@@ -12,8 +13,8 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services)
     {
-        var connectionString = Environment.GetEnvironmentVariable("CONNECTIONSTRINGS__DEFAULTCONNECTION")
-            ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+        var connectionString = Environment.GetEnvironmentVariable(EnvironmentConstants.DefaultConnection)
+            ?? Environment.GetEnvironmentVariable(EnvironmentConstants.DefaultConnectionAlt);
 
         if (!string.IsNullOrEmpty(connectionString))
         {
@@ -33,9 +34,9 @@ public static class DependencyInjection
 
     public static IServiceCollection AddCloudinary(this IServiceCollection services)
     {
-        var cloudName = Environment.GetEnvironmentVariable("CLOUDINARY_CLOUD_NAME") ?? string.Empty;
-        var apiKey = Environment.GetEnvironmentVariable("CLOUDINARY_API_KEY") ?? string.Empty;
-        var apiSecret = Environment.GetEnvironmentVariable("CLOUDINARY_API_SECRET") ?? string.Empty;
+        var cloudName = Environment.GetEnvironmentVariable(EnvironmentConstants.CloudinaryCloudName) ?? string.Empty;
+        var apiKey = Environment.GetEnvironmentVariable(EnvironmentConstants.CloudinaryApiKey) ?? string.Empty;
+        var apiSecret = Environment.GetEnvironmentVariable(EnvironmentConstants.CloudinaryApiSecret) ?? string.Empty;
 
         var account = new Account(cloudName, apiKey, apiSecret);
         var cloudinary = new Cloudinary(account);
@@ -56,15 +57,15 @@ public static class DependencyInjection
     {
         var jwtOptions = new JwtOptions
         {
-            Secret = Environment.GetEnvironmentVariable("JWT__SECRET") ?? string.Empty,
-            Issuer = Environment.GetEnvironmentVariable("JWT__ISSUER") ?? "OrbitApi",
-            Audience = Environment.GetEnvironmentVariable("JWT__AUDIENCE") ?? "OrbitClient",
+            Secret = Environment.GetEnvironmentVariable(EnvironmentConstants.JwtSecret) ?? string.Empty,
+            Issuer = Environment.GetEnvironmentVariable(EnvironmentConstants.JwtIssuer) ?? DefaultsConstants.JwtIssuer,
+            Audience = Environment.GetEnvironmentVariable(EnvironmentConstants.JwtAudience) ?? DefaultsConstants.JwtAudience,
             AccessTokenExpirationMinutes = int.TryParse(
-                Environment.GetEnvironmentVariable("JWT__ACCESSTOKENEXPIRATIONMINUTES"), out var accessMin)
-                ? accessMin : 15,
+                Environment.GetEnvironmentVariable(EnvironmentConstants.JwtAccessTokenExpiration), out var accessMin)
+                ? accessMin : DefaultsConstants.JwtAccessTokenExpirationMinutes,
             RefreshTokenExpirationDays = int.TryParse(
-                Environment.GetEnvironmentVariable("JWT__REFRESHTOKENEXPIRATIONDAYS"), out var refreshDays)
-                ? refreshDays : 7,
+                Environment.GetEnvironmentVariable(EnvironmentConstants.JwtRefreshTokenExpiration), out var refreshDays)
+                ? refreshDays : DefaultsConstants.JwtRefreshTokenExpirationDays,
         };
 
         services.AddSingleton(jwtOptions);
@@ -81,7 +82,7 @@ public static class DependencyInjection
 
     public static IServiceCollection AddRedis(this IServiceCollection services)
     {
-        var connection = Environment.GetEnvironmentVariable("REDIS_CONNECTION") ?? "localhost:6379";
+        var connection = Environment.GetEnvironmentVariable(EnvironmentConstants.RedisConnection) ?? DefaultsConstants.RedisConnection;
 
         services.AddStackExchangeRedisCache(options =>
         {
@@ -97,12 +98,12 @@ public static class DependencyInjection
     {
         var mailOptions = new MailOptions
         {
-            Host = Environment.GetEnvironmentVariable("SMTP__HOST") ?? "smtp-relay.brevo.com",
-            Port = int.TryParse(Environment.GetEnvironmentVariable("SMTP__PORT"), out var port) ? port : 587,
-            Username = Environment.GetEnvironmentVariable("SMTP__USERNAME") ?? string.Empty,
-            Password = Environment.GetEnvironmentVariable("SMTP__PASSWORD") ?? string.Empty,
-            FromName = Environment.GetEnvironmentVariable("SMTP__FROMNAME") ?? "Orbit",
-            FromEmail = Environment.GetEnvironmentVariable("SMTP__FROMEMAIL") ?? "noreply@orbitsocial.com",
+            Host = Environment.GetEnvironmentVariable(EnvironmentConstants.SmtpHost) ?? DefaultsConstants.SmtpHost,
+            Port = int.TryParse(Environment.GetEnvironmentVariable(EnvironmentConstants.SmtpPort), out var port) ? port : DefaultsConstants.SmtpPort,
+            Username = Environment.GetEnvironmentVariable(EnvironmentConstants.SmtpUsername) ?? string.Empty,
+            Password = Environment.GetEnvironmentVariable(EnvironmentConstants.SmtpPassword) ?? string.Empty,
+            FromName = Environment.GetEnvironmentVariable(EnvironmentConstants.SmtpFromName) ?? DefaultsConstants.SmtpFromName,
+            FromEmail = Environment.GetEnvironmentVariable(EnvironmentConstants.SmtpFromEmail) ?? DefaultsConstants.SmtpFromEmail,
         };
 
         services.AddSingleton(mailOptions);

@@ -3,6 +3,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Orbit.ApiWeb.DTOs;
+using Orbit.Application.Constants;
 using Orbit.Application.Interfaces;
 
 namespace Orbit.ApiWeb.Controllers;
@@ -38,7 +39,7 @@ public class AuthController : ControllerBase
         if (!validationResult.IsValid)
         {
             var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToArray();
-            return BadRequest(new { isSuccess = false, message = "Validation failed", errors });
+            return BadRequest(new { isSuccess = false, message = ResponseMessages.ValidationFailed, errors });
         }
 
         Stream? fileStream = null;
@@ -61,8 +62,8 @@ public class AuthController : ControllerBase
         {
             return result.Message switch
             {
-                "Email is already registered" => Conflict(new { isSuccess = false, message = result.Message }),
-                "Username is already taken" => Conflict(new { isSuccess = false, message = result.Message }),
+                ResponseMessages.EmailAlreadyRegistered => Conflict(new { isSuccess = false, message = result.Message }),
+                ResponseMessages.UsernameAlreadyTaken => Conflict(new { isSuccess = false, message = result.Message }),
                 _ => StatusCode(500, new { isSuccess = false, message = result.Message }),
             };
         }
@@ -77,7 +78,7 @@ public class AuthController : ControllerBase
         if (!validationResult.IsValid)
         {
             var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToArray();
-            return BadRequest(new { isSuccess = false, message = "Validation failed", errors });
+            return BadRequest(new { isSuccess = false, message = ResponseMessages.ValidationFailed, errors });
         }
 
         var result = await _authService.LoginAsync(request.Email, request.Password);
@@ -102,9 +103,9 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Me()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                       ?? User.FindFirst("sub")?.Value;
+                       ?? User.FindFirst(ClaimConstants.Sub)?.Value;
         if (userIdClaim is null || !Guid.TryParse(userIdClaim, out var authUserId))
-            return Unauthorized(new { isSuccess = false, message = "Invalid token" });
+            return Unauthorized(new { isSuccess = false, message = ResponseMessages.InvalidToken });
 
         var result = await _authService.GetCurrentUserAsync(authUserId);
 
@@ -123,7 +124,7 @@ public class AuthController : ControllerBase
         {
             return result.Message switch
             {
-                "Session expired" => Unauthorized(new { isSuccess = false, message = result.Message }),
+                ResponseMessages.SessionExpired => Unauthorized(new { isSuccess = false, message = result.Message }),
                 _ => Unauthorized(new { isSuccess = false, message = result.Message }),
             };
         }
@@ -138,7 +139,7 @@ public class AuthController : ControllerBase
         if (!validationResult.IsValid)
         {
             var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToArray();
-            return BadRequest(new { isSuccess = false, message = "Validation failed", errors });
+            return BadRequest(new { isSuccess = false, message = ResponseMessages.ValidationFailed, errors });
         }
 
         var result = await _authService.ForgotPasswordAsync(request.Email);
@@ -152,7 +153,7 @@ public class AuthController : ControllerBase
         if (!validationResult.IsValid)
         {
             var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToArray();
-            return BadRequest(new { isSuccess = false, message = "Validation failed", errors });
+            return BadRequest(new { isSuccess = false, message = ResponseMessages.ValidationFailed, errors });
         }
 
         var result = await _authService.ResetPasswordAsync(request.Email, request.Token, request.NewPassword);

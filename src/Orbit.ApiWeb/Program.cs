@@ -4,8 +4,12 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Orbit.ApiWeb.Validators;
 using Orbit.Application.Features.Auth;
+using Orbit.Application.Features.Follows;
+using Orbit.Application.Features.Posts;
+using Orbit.Application.Features.Profiles;
 using Orbit.Application.Interfaces;
 using Orbit.Infrastructure.Extensions;
+using Orbit.Shared.Constants;
 
 var envPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", ".env");
 if (File.Exists(envPath))
@@ -18,11 +22,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddInfrastructure();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IProfileService, ProfileService>();
+builder.Services.AddScoped<IPostService, PostService>();
+builder.Services.AddScoped<IFollowService, FollowService>();
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterValidator>();
 
-var jwtSecret = Environment.GetEnvironmentVariable("JWT__SECRET") ?? string.Empty;
-var jwtIssuer = Environment.GetEnvironmentVariable("JWT__ISSUER") ?? "OrbitApi";
-var jwtAudience = Environment.GetEnvironmentVariable("JWT__AUDIENCE") ?? "OrbitClient";
+var jwtSecret = Environment.GetEnvironmentVariable(EnvironmentConstants.JwtSecret) ?? string.Empty;
+var jwtIssuer = Environment.GetEnvironmentVariable(EnvironmentConstants.JwtIssuer) ?? DefaultsConstants.JwtIssuer;
+var jwtAudience = Environment.GetEnvironmentVariable(EnvironmentConstants.JwtAudience) ?? DefaultsConstants.JwtAudience;
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

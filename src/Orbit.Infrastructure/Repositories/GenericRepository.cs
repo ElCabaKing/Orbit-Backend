@@ -69,6 +69,44 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
         DbSet.Update(entity);
     }
 
+    public virtual void Remove(T entity)
+    {
+        DbSet.Remove(entity);
+    }
+
+    public virtual async Task<int> CountAsync(Expression<Func<T, bool>> predicate)
+    {
+        var query = DbSet.AsQueryable();
+
+        if (typeof(ISoftDeletable).IsAssignableFrom(typeof(T)))
+        {
+            query = query.Where(e => ((ISoftDeletable)e).IsActive);
+        }
+
+        return await query.CountAsync(predicate);
+    }
+
+    public virtual async Task<List<T>> GetPagedAsync<TKey>(
+        Expression<Func<T, bool>> predicate,
+        Expression<Func<T, TKey>> orderByDescending,
+        int skip,
+        int take)
+    {
+        var query = DbSet.AsQueryable();
+
+        if (typeof(ISoftDeletable).IsAssignableFrom(typeof(T)))
+        {
+            query = query.Where(e => ((ISoftDeletable)e).IsActive);
+        }
+
+        return await query
+            .Where(predicate)
+            .OrderByDescending(orderByDescending)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync();
+    }
+
     public virtual async Task DeleteAsync(Guid id)
     {
         var entity = await DbSet.FindAsync(id);

@@ -16,6 +16,18 @@
     {
       "key": "refreshToken",
       "value": ""
+    },
+    {
+      "key": "postId",
+      "value": ""
+    },
+    {
+      "key": "commentId",
+      "value": ""
+    },
+    {
+      "key": "targetUsername",
+      "value": "janedoe"
     }
   ],
   "item": [
@@ -23,7 +35,7 @@
       "name": "Auth",
       "item": [
         {
-          "name": "Register - Success with profile picture",
+          "name": "Register - Success",
           "event": [
             {
               "listen": "test",
@@ -36,8 +48,6 @@
                   "    var json = pm.response.json();",
                   "    pm.expect(json.isSuccess).to.eql(true);",
                   "    pm.expect(json.data).to.have.property('id');",
-                  "    pm.expect(json.data.email).to.eql('john@example.com');",
-                  "    pm.expect(json.data.username).to.eql('johndoe');",
                   "});"
                 ]
               }
@@ -49,26 +59,11 @@
             "body": {
               "mode": "formdata",
               "formdata": [
-                {
-                  "key": "email",
-                  "value": "john@example.com"
-                },
-                {
-                  "key": "username",
-                  "value": "johndoe"
-                },
-                {
-                  "key": "displayName",
-                  "value": "John Doe"
-                },
-                {
-                  "key": "password",
-                  "value": "Password123"
-                },
-                {
-                  "key": "bio",
-                  "value": "Software developer and coffee enthusiast"
-                }
+                { "key": "email", "value": "john@example.com" },
+                { "key": "username", "value": "johndoe" },
+                { "key": "displayName", "value": "John Doe" },
+                { "key": "password", "value": "Password123" },
+                { "key": "bio", "value": "Software developer and coffee enthusiast" }
               ]
             },
             "url": {
@@ -102,22 +97,10 @@
             "body": {
               "mode": "formdata",
               "formdata": [
-                {
-                  "key": "email",
-                  "value": "john@example.com"
-                },
-                {
-                  "key": "username",
-                  "value": "janedoe"
-                },
-                {
-                  "key": "displayName",
-                  "value": "Jane Doe"
-                },
-                {
-                  "key": "password",
-                  "value": "Password456"
-                }
+                { "key": "email", "value": "john@example.com" },
+                { "key": "username", "value": "janedoe" },
+                { "key": "displayName", "value": "Jane Doe" },
+                { "key": "password", "value": "Password456" }
               ]
             },
             "url": {
@@ -151,22 +134,10 @@
             "body": {
               "mode": "formdata",
               "formdata": [
-                {
-                  "key": "email",
-                  "value": "jane@example.com"
-                },
-                {
-                  "key": "username",
-                  "value": "johndoe"
-                },
-                {
-                  "key": "displayName",
-                  "value": "Jane Doe"
-                },
-                {
-                  "key": "password",
-                  "value": "Password456"
-                }
+                { "key": "email", "value": "jane@example.com" },
+                { "key": "username", "value": "johndoe" },
+                { "key": "displayName", "value": "Jane Doe" },
+                { "key": "password", "value": "Password456" }
               ]
             },
             "url": {
@@ -201,22 +172,10 @@
             "body": {
               "mode": "formdata",
               "formdata": [
-                {
-                  "key": "email",
-                  "value": "not-an-email"
-                },
-                {
-                  "key": "username",
-                  "value": "a"
-                },
-                {
-                  "key": "displayName",
-                  "value": ""
-                },
-                {
-                  "key": "password",
-                  "value": "short"
-                }
+                { "key": "email", "value": "not-an-email" },
+                { "key": "username", "value": "a" },
+                { "key": "displayName", "value": "" },
+                { "key": "password", "value": "short" }
               ]
             },
             "url": {
@@ -234,31 +193,12 @@
             "body": {
               "mode": "formdata",
               "formdata": [
-                {
-                  "key": "email",
-                  "value": "alice@example.com"
-                },
-                {
-                  "key": "username",
-                  "value": "alicewonder"
-                },
-                {
-                  "key": "displayName",
-                  "value": "Alice Wonderland"
-                },
-                {
-                  "key": "password",
-                  "value": "SecurePass1"
-                },
-                {
-                  "key": "bio",
-                  "value": "Curiouser and curiouser!"
-                },
-                {
-                  "key": "profilePicture",
-                  "type": "file",
-                  "src": "avatar.jpg"
-                }
+                { "key": "email", "value": "alice@example.com" },
+                { "key": "username", "value": "alicewonder" },
+                { "key": "displayName", "value": "Alice Wonderland" },
+                { "key": "password", "value": "SecurePass1" },
+                { "key": "bio", "value": "Curiouser and curiouser!" },
+                { "key": "profilePicture", "type": "file", "src": "avatar.jpg" }
               ]
             },
             "url": {
@@ -269,7 +209,7 @@
           }
         },
         {
-          "name": "Login - Success",
+          "name": "Login - Success (save tokens)",
           "event": [
             {
               "listen": "test",
@@ -278,13 +218,11 @@
                   "pm.test(\"Status code is 200\", function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
-                  "pm.test(\"Response has tokens\", function () {",
-                  "    var json = pm.response.json();",
-                  "    pm.expect(json.isSuccess).to.eql(true);",
-                  "    pm.expect(json.data).to.have.property('accessToken');",
-                  "    pm.expect(json.data).to.have.property('refreshToken');",
-                  "    pm.expect(json.data.profile).to.have.property('username');",
-                  "});"
+                  "var json = pm.response.json();",
+                  "if (json.isSuccess) {",
+                  "    pm.collectionVariables.set('accessToken', json.data.accessToken);",
+                  "    pm.collectionVariables.set('refreshToken', json.data.refreshToken);",
+                  "}"
                 ]
               }
             }
@@ -340,20 +278,15 @@
           }
         },
         {
-          "name": "Login - Success (save tokens)",
+          "name": "Login - User not found",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status code is 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "var json = pm.response.json();",
-                  "if (json.isSuccess) {",
-                  "    pm.collectionVariables.set('accessToken', json.data.accessToken);",
-                  "    pm.collectionVariables.set('refreshToken', json.data.refreshToken);",
-                  "}"
+                  "pm.test(\"Status code is 401\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
                 ]
               }
             }
@@ -365,7 +298,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"Password123\"\n}"
+              "raw": "{\n  \"email\": \"noone@example.com\",\n  \"password\": \"DoesntMatter1\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/login",
@@ -375,7 +308,7 @@
           }
         },
         {
-          "name": "Refresh - Success",
+          "name": "Refresh Token",
           "event": [
             {
               "listen": "test",
@@ -441,7 +374,7 @@
           }
         },
         {
-          "name": "Logout - Success",
+          "name": "Logout",
           "event": [
             {
               "listen": "test",
@@ -506,7 +439,7 @@
           }
         },
         {
-          "name": "Forgot Password - Success",
+          "name": "Forgot Password",
           "event": [
             {
               "listen": "test",
@@ -540,7 +473,7 @@
           }
         },
         {
-          "name": "Reset Password - Success",
+          "name": "Reset Password",
           "event": [
             {
               "listen": "test",
@@ -606,16 +539,357 @@
               "path": ["api", "auth", "reset-password"]
             }
           }
-        },
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "item": [
         {
-          "name": "Login - User not found",
+          "name": "Get Profile by Username",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status code is 401\", function () {",
-                  "    pm.response.to.have.status(401);",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response has profile\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.eql(true);",
+                  "    pm.expect(json.data).to.have.property('username');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/profiles/johndoe",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "profiles", "johndoe"]
+            }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayName\": \"John Updated\",\n  \"bio\": \"Updated bio\",\n  \"isPrivate\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Update Avatar",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": "avatar.jpg" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/profile/avatar",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "profile", "avatar"]
+            }
+          }
+        },
+        {
+          "name": "Remove Avatar",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/profile/avatar",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "profile", "avatar"]
+            }
+          }
+        },
+        {
+          "name": "Update Banner",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": "banner.jpg" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/profile/banner",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "profile", "banner"]
+            }
+          }
+        },
+        {
+          "name": "Remove Banner",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/profile/banner",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "profile", "banner"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Posts",
+      "item": [
+        {
+          "name": "Create Post (text only)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "var json = pm.response.json();",
+                  "if (json.isSuccess) {",
+                  "    pm.collectionVariables.set('postId', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "content", "value": "Hello World! This is my first post on Orbit!" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/posts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts"]
+            }
+          }
+        },
+        {
+          "name": "Create Post (with media)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "var json = pm.response.json();",
+                  "if (json.isSuccess) {",
+                  "    pm.collectionVariables.set('postId', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "content", "value": "Check out this cool media!" },
+                { "key": "media", "type": "file", "src": "post-image.jpg" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/posts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts"]
+            }
+          }
+        },
+        {
+          "name": "Get Post by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response has post data\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.eql(true);",
+                  "    pm.expect(json.data).to.have.property('content');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/{{postId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", "{{postId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Timeline",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response has paginated posts\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.eql(true);",
+                  "    pm.expect(json.data).to.have.property('items');",
+                  "    pm.expect(json.data).to.have.property('totalCount');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/timeline?page=1&pageSize=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", "timeline"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Profile Posts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response has posts\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/profiles/johndoe/posts?page=1&pageSize=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "profiles", "johndoe", "posts"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Updated post content!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/{{postId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", "{{postId}}"]
+            }
+          }
+        },
+        {
+          "name": "Like Post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response has like data\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.eql(true);",
+                  "    pm.expect(json.data.isLiked).to.eql(true);",
                   "});"
                 ]
               }
@@ -624,16 +898,291 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/{{postId}}/like",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", "{{postId}}", "like"]
+            }
+          }
+        },
+        {
+          "name": "Unlike Post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response has unlike data\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.eql(true);",
+                  "    pm.expect(json.data.isLiked).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/{{postId}}/like",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", "{{postId}}", "like"]
+            }
+          }
+        },
+        {
+          "name": "Create Comment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "var json = pm.response.json();",
+                  "if (json.isSuccess) {",
+                  "    pm.collectionVariables.set('commentId', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"noone@example.com\",\n  \"password\": \"DoesntMatter1\"\n}"
+              "raw": "{\n  \"content\": \"Great post! Thanks for sharing.\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/auth/login",
+              "raw": "{{baseUrl}}/api/posts/{{postId}}/comments",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "auth", "login"]
+              "path": ["api", "posts", "{{postId}}", "comments"]
+            }
+          }
+        },
+        {
+          "name": "Get Post Comments",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response has paginated comments\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.eql(true);",
+                  "    pm.expect(json.data).to.have.property('items');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/{{postId}}/comments?page=1&pageSize=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", "{{postId}}", "comments"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Comment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/comments/{{commentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "comments", "{{commentId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/{{postId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", "{{postId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Follows",
+      "item": [
+        {
+          "name": "Follow User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Follow successful\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/profiles/{{targetUsername}}/follow",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "profiles", "{{targetUsername}}", "follow"]
+            }
+          }
+        },
+        {
+          "name": "Get Followers",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response has followers list\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.eql(true);",
+                  "    pm.expect(json.data).to.have.property('items');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/profiles/johndoe/followers?page=1&pageSize=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "profiles", "johndoe", "followers"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Following",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response has following list\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.eql(true);",
+                  "    pm.expect(json.data).to.have.property('items');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/profiles/johndoe/following?page=1&pageSize=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "profiles", "johndoe", "following"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Unfollow User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Unfollow successful\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/profiles/{{targetUsername}}/follow",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "profiles", "{{targetUsername}}", "follow"]
             }
           }
         }

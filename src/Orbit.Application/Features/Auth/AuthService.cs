@@ -1,10 +1,12 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using Orbit.Application.Common;
+using Orbit.Application.Constants;
 using Orbit.Application.DTOs;
 using Orbit.Application.Enums;
 using Orbit.Application.Interfaces;
 using Orbit.Domain.Entities;
+using Orbit.Shared.Constants;
 
 namespace Orbit.Application.Features.Auth;
 
@@ -64,12 +66,12 @@ public class AuthService : IAuthService
     {
         var emailExists = await _authUserRepo.FirstOrDefaultAsync(u => u.Email == email);
         if (emailExists is not null)
-            return Result<RegisterResponse>.Failure("Email is already registered");
+            return Result<RegisterResponse>.Failure(ResponseMessages.EmailAlreadyRegistered);
 
         var usernameSlug = username.ToLowerInvariant();
         var usernameExists = await _profileRepo.FirstOrDefaultAsync(p => p.UsernameSlug == usernameSlug);
         if (usernameExists is not null)
-            return Result<RegisterResponse>.Failure("Username is already taken");
+            return Result<RegisterResponse>.Failure(ResponseMessages.UsernameAlreadyTaken);
 
         var passwordHash = _passwordHasher.Hash(password);
         var authUser = new AuthUser
@@ -116,21 +118,21 @@ public class AuthService : IAuthService
 
         return Result<RegisterResponse>.Success(new RegisterResponse(
             authUser.Id, email, username, displayName, avatarUrl, bio
-        ), "Registration successful");
+        ), ResponseMessages.RegistrationSuccessful);
     }
 
     public async Task<Result<AuthResponse>> LoginAsync(string email, string password)
     {
         var authUser = await _authUserRepo.FirstOrDefaultAsync(u => u.Email == email);
         if (authUser is null)
-            return Result<AuthResponse>.Failure("Invalid credentials");
+            return Result<AuthResponse>.Failure(ResponseMessages.InvalidCredentials);
 
         if (!_passwordHasher.Verify(password, authUser.PasswordHash))
-            return Result<AuthResponse>.Failure("Invalid credentials");
+            return Result<AuthResponse>.Failure(ResponseMessages.InvalidCredentials);
 
         var profile = await _profileRepo.FirstOrDefaultAsync(p => p.AuthUserId == authUser.Id);
         if (profile is null)
-            return Result<AuthResponse>.Failure("Invalid credentials");
+            return Result<AuthResponse>.Failure(ResponseMessages.InvalidCredentials);
 
         var prefixResponse = await GetPrefixAsync(profile.PrefixId);
 
@@ -152,7 +154,7 @@ public class AuthService : IAuthService
 
         var profileResponse = BuildProfileResponse(profile, prefixResponse);
         var response = new AuthResponse(accessToken, rawRefreshToken, expiresAt, profileResponse);
-        return Result<AuthResponse>.Success(response, "Login successful");
+        return Result<AuthResponse>.Success(response, ResponseMessages.LoginSuccessful);
     }
 
     public async Task<Result> LogoutAsync(string refreshToken)
@@ -174,14 +176,14 @@ public class AuthService : IAuthService
             await _sessionRepo.DeleteAsync(sessionToDelete.Id);
         }
 
-        return Result.Success("Logged out successfully");
+        return Result.Success(ResponseMessages.LoggedOutSuccessfully);
     }
 
     public async Task<Result<ProfileResponse>> GetCurrentUserAsync(Guid authUserId)
     {
         var profile = await _profileRepo.FirstOrDefaultAsync(p => p.AuthUserId == authUserId);
         if (profile is null)
-            return Result<ProfileResponse>.Failure("Profile not found");
+            return Result<ProfileResponse>.Failure(ResponseMessages.ProfileNotFound);
 
         var prefixResponse = await GetPrefixAsync(profile.PrefixId);
         var profileResponse = BuildProfileResponse(profile, prefixResponse);
@@ -193,16 +195,16 @@ public class AuthService : IAuthService
     {
         var principal = _jwtService.GetPrincipalFromExpiredToken(accessToken);
         if (principal is null)
-            return Result<AuthResponse>.Failure("Invalid or expired token");
+            return Result<AuthResponse>.Failure(ResponseMessages.InvalidOrExpiredToken);
 
         var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                       ?? principal.FindFirst("sub")?.Value;
+                       ?? principal.FindFirst(ClaimConstants.Sub)?.Value;
         if (userIdClaim is null || !Guid.TryParse(userIdClaim, out var authUserId))
-            return Result<AuthResponse>.Failure("Invalid or expired token");
+            return Result<AuthResponse>.Failure(ResponseMessages.InvalidOrExpiredToken);
 
         var profile = await _profileRepo.FirstOrDefaultAsync(p => p.AuthUserId == authUserId);
         if (profile is null)
-            return Result<AuthResponse>.Failure("Invalid or expired token");
+            return Result<AuthResponse>.Failure(ResponseMessages.InvalidOrExpiredToken);
 
         var sessions = await _sessionRepo.GetListAsync(s => s.AuthUserId == authUserId);
 
@@ -217,10 +219,10 @@ public class AuthService : IAuthService
         }
 
         if (validSession is null)
-            return Result<AuthResponse>.Failure("Invalid refresh token");
+            return Result<AuthResponse>.Failure(ResponseMessages.InvalidRefreshToken);
 
         if (validSession.ExpiresAt < DateTime.UtcNow)
-            return Result<AuthResponse>.Failure("Session expired");
+            return Result<AuthResponse>.Failure(ResponseMessages.SessionExpired);
 
         await _sessionRepo.DeleteAsync(validSession.Id);
 
@@ -244,7 +246,7 @@ public class AuthService : IAuthService
 
         var profileResponse = BuildProfileResponse(profile, prefixResponse);
         var response = new AuthResponse(newAccessToken, rawRefreshToken, expiresAt, profileResponse);
-        return Result<AuthResponse>.Success(response, "Token refreshed successfully");
+        return Result<AuthResponse>.Success(response, ResponseMessages.TokenRefreshed);
     }
 
     public async Task<Result> ForgotPasswordAsync(string email)
@@ -257,7 +259,7 @@ public class AuthService : IAuthService
             var token = GenerateResetToken();
             await _resetTokenService.SaveTokenAsync(normalizedEmail, token, TimeSpan.FromMinutes(15));
 
-            var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL") ?? "http://localhost:3000";
+            var frontendUrl = Environment.GetEnvironmentVariable(EnvironmentConstants.FrontendUrl) ?? DefaultsConstants.FrontendUrl;
             var resetUrl = $"{frontendUrl}/reset-password?email={Uri.EscapeDataString(normalizedEmail)}";
 
             var htmlBody = $"""
@@ -277,7 +279,7 @@ public class AuthService : IAuthService
             await _emailService.SendAsync(normalizedEmail, "", "Orbit - Password Reset", htmlBody);
         }
 
-        return Result.Success("If registered, check your inbox");
+        return Result.Success(ResponseMessages.CheckYourInbox);
     }
 
     public async Task<Result> ResetPasswordAsync(string email, string token, string newPassword)
@@ -286,11 +288,11 @@ public class AuthService : IAuthService
         var storedToken = await _resetTokenService.GetTokenAsync(normalizedEmail);
 
         if (storedToken is null || storedToken != token)
-            return Result.Failure("Invalid or expired token");
+            return Result.Failure(ResponseMessages.InvalidOrExpiredToken);
 
         var authUser = await _authUserRepo.FirstOrDefaultAsync(u => u.Email == normalizedEmail);
         if (authUser is null)
-            return Result.Failure("Invalid or expired token");
+            return Result.Failure(ResponseMessages.InvalidOrExpiredToken);
 
         authUser.PasswordHash = _passwordHasher.Hash(newPassword);
         authUser.UpdatedAt = DateTime.UtcNow;
@@ -299,7 +301,7 @@ public class AuthService : IAuthService
 
         await _resetTokenService.RemoveTokenAsync(normalizedEmail);
 
-        return Result.Success("Password reset successful");
+        return Result.Success(ResponseMessages.PasswordResetSuccessful);
     }
 
     private async Task<UserPrefixResponse?> GetPrefixAsync(Guid? prefixId)
