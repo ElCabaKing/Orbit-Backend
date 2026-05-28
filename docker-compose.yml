@@ -15,6 +15,20 @@ services:
     container_name: orbit-redis
     ports:
       - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: orbit-redisinsight
+    ports:
+      - "5540:5540"
+    volumes:
+      - redisinsight-data:/data
+    depends_on:
+      - redis
 
 volumes:
   sqlserver-data:
+  redis-data:
+  redisinsight-data:

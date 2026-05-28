@@ -14,15 +14,21 @@ public class AuthController : ControllerBase
     private readonly IAuthService _authService;
     private readonly IValidator<RegisterRequest> _registerValidator;
     private readonly IValidator<LoginRequest> _loginValidator;
+    private readonly IValidator<ForgotPasswordRequest> _forgotPasswordValidator;
+    private readonly IValidator<ResetPasswordRequest> _resetPasswordValidator;
 
     public AuthController(
         IAuthService authService,
         IValidator<RegisterRequest> registerValidator,
-        IValidator<LoginRequest> loginValidator)
+        IValidator<LoginRequest> loginValidator,
+        IValidator<ForgotPasswordRequest> forgotPasswordValidator,
+        IValidator<ResetPasswordRequest> resetPasswordValidator)
     {
         _authService = authService;
         _registerValidator = registerValidator;
         _loginValidator = loginValidator;
+        _forgotPasswordValidator = forgotPasswordValidator;
+        _resetPasswordValidator = resetPasswordValidator;
     }
 
     [HttpPost("register")]
@@ -123,5 +129,37 @@ public class AuthController : ControllerBase
         }
 
         return Ok(new { isSuccess = true, message = result.Message, data = result.Data });
+    }
+
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+    {
+        var validationResult = await _forgotPasswordValidator.ValidateAsync(request);
+        if (!validationResult.IsValid)
+        {
+            var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToArray();
+            return BadRequest(new { isSuccess = false, message = "Validation failed", errors });
+        }
+
+        var result = await _authService.ForgotPasswordAsync(request.Email);
+        return Ok(new { isSuccess = true, message = result.Message });
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+    {
+        var validationResult = await _resetPasswordValidator.ValidateAsync(request);
+        if (!validationResult.IsValid)
+        {
+            var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToArray();
+            return BadRequest(new { isSuccess = false, message = "Validation failed", errors });
+        }
+
+        var result = await _authService.ResetPasswordAsync(request.Email, request.Token, request.NewPassword);
+
+        if (!result.IsSuccess)
+            return BadRequest(new { isSuccess = false, message = result.Message });
+
+        return Ok(new { isSuccess = true, message = result.Message });
     }
 }

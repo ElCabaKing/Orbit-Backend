@@ -25,6 +25,7 @@ public static class DependencyInjection
         services.AddHashing();
         services.AddJwt();
         services.AddRedis();
+        services.AddEmail();
         services.AddRepositories();
 
         return services;
@@ -88,6 +89,24 @@ public static class DependencyInjection
         });
 
         services.AddScoped<IResetTokenService, ResetTokenService>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddEmail(this IServiceCollection services)
+    {
+        var mailOptions = new MailOptions
+        {
+            Host = Environment.GetEnvironmentVariable("SMTP__HOST") ?? "smtp-relay.brevo.com",
+            Port = int.TryParse(Environment.GetEnvironmentVariable("SMTP__PORT"), out var port) ? port : 587,
+            Username = Environment.GetEnvironmentVariable("SMTP__USERNAME") ?? string.Empty,
+            Password = Environment.GetEnvironmentVariable("SMTP__PASSWORD") ?? string.Empty,
+            FromName = Environment.GetEnvironmentVariable("SMTP__FROMNAME") ?? "Orbit",
+            FromEmail = Environment.GetEnvironmentVariable("SMTP__FROMEMAIL") ?? "noreply@orbitsocial.com",
+        };
+
+        services.AddSingleton(mailOptions);
+        services.AddScoped<IEmailService, EmailService>();
 
         return services;
     }
