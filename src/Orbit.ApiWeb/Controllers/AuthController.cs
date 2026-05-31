@@ -142,7 +142,7 @@ public class AuthController : ControllerBase
             return BadRequest(new { isSuccess = false, message = ResponseMessages.ValidationFailed, errors });
         }
 
-        var result = await _authService.ForgotPasswordAsync(request.Email);
+        var result = await _authService.ForgotPasswordAsync(request.EmailOrUsername);
         return Ok(new { isSuccess = true, message = result.Message });
     }
 
@@ -156,7 +156,7 @@ public class AuthController : ControllerBase
             return BadRequest(new { isSuccess = false, message = ResponseMessages.ValidationFailed, errors });
         }
 
-        var result = await _authService.ResetPasswordAsync(request.Email, request.Token, request.NewPassword);
+        var result = await _authService.ResetPasswordAsync(request.Username, request.Token, request.NewPassword);
 
         if (!result.IsSuccess)
             return BadRequest(new { isSuccess = false, message = result.Message });

@@ -8,9 +8,10 @@ public class ResetPasswordValidator : AbstractValidator<ResetPasswordRequest>
 {
     public ResetPasswordValidator()
     {
-        RuleFor(x => x.Email)
-            .NotEmpty().WithMessage(ValidationConstants.EmailRequired)
-            .EmailAddress().WithMessage(ValidationConstants.EmailInvalidFormat);
+        RuleFor(x => x.Username)
+            .NotEmpty().WithMessage(ValidationConstants.UsernameRequired)
+            .Length(3, 30).WithMessage(ValidationConstants.UsernameLength)
+            .Matches("^[a-zA-Z0-9_]+$").WithMessage(ValidationConstants.UsernameInvalidChars);
 
         RuleFor(x => x.Token)
             .NotEmpty().WithMessage(ValidationConstants.TokenRequired)

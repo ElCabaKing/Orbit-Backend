@@ -18,6 +18,7 @@ public class OrbitDbContext : Microsoft.EntityFrameworkCore.DbContext
     public DbSet<PostLike> PostLikes => Set<PostLike>();
     public DbSet<Comment> Comments => Set<Comment>();
     public DbSet<Follow> Follows => Set<Follow>();
+    public DbSet<EmailTemplate> EmailTemplates => Set<EmailTemplate>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

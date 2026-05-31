@@ -463,7 +463,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"john@example.com\"\n}"
+              "raw": "{\n  \"emailOrUsername\": \"john@example.com\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/forgot-password",
@@ -497,7 +497,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"emailOrUsername\": \"john@example.com\",\n  \"token\": \"ABC123\",\n  \"newPassword\": \"NewSecureP4ss\"\n}"
+              "raw": "{\n  \"username\": \"johndoe\",\n  \"token\": \"ABC123\",\n  \"newPassword\": \"NewSecureP4ss\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/reset-password",
@@ -531,7 +531,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"emailOrUsername\": \"john@example.com\",\n  \"token\": \"WRONG1\",\n  \"newPassword\": \"NewSecureP4ss\"\n}"
+              "raw": "{\n  \"username\": \"johndoe\",\n  \"token\": \"WRONG1\",\n  \"newPassword\": \"NewSecureP4ss\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/reset-password",

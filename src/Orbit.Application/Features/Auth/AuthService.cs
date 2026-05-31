@@ -16,6 +16,7 @@ public class AuthService : IAuthService
     private readonly IGenericRepository<Profile> _profileRepo;
     private readonly IGenericRepository<UserSession> _sessionRepo;
     private readonly IGenericRepository<UserPrefix> _prefixRepo;
+    private readonly IGenericRepository<EmailTemplate> _emailTemplateRepo;
     private readonly IPasswordHasher _passwordHasher;
     private readonly ICloudinaryService _cloudinaryService;
     private readonly IJwtService _jwtService;
@@ -29,6 +30,7 @@ public class AuthService : IAuthService
         IGenericRepository<Profile> profileRepo,
         IGenericRepository<UserSession> sessionRepo,
         IGenericRepository<UserPrefix> prefixRepo,
+        IGenericRepository<EmailTemplate> emailTemplateRepo,
         IPasswordHasher passwordHasher,
         ICloudinaryService cloudinaryService,
         IJwtService jwtService,
@@ -39,6 +41,7 @@ public class AuthService : IAuthService
         _profileRepo = profileRepo;
         _sessionRepo = sessionRepo;
         _prefixRepo = prefixRepo;
+        _emailTemplateRepo = emailTemplateRepo;
         _passwordHasher = passwordHasher;
         _cloudinaryService = cloudinaryService;
         _jwtService = jwtService;
@@ -115,6 +118,8 @@ public class AuthService : IAuthService
         };
 
         await _profileRepo.CreateAsync(profile);
+
+        await SendWelcomeEmailAsync(email, displayName, username);
 
         return Result<RegisterResponse>.Success(new RegisterResponse(
             authUser.Id, email, username, displayName, avatarUrl, bio
@@ -257,51 +262,64 @@ public class AuthService : IAuthService
         return Result<AuthResponse>.Success(response, ResponseMessages.TokenRefreshed);
     }
 
-    public async Task<Result> ForgotPasswordAsync(string email)
+    public async Task<Result> ForgotPasswordAsync(string emailOrUsername)
     {
-        var normalizedEmail = email.ToLowerInvariant();
-        var authUser = await _authUserRepo.FirstOrDefaultAsync(u => u.Email == normalizedEmail);
+        var normalizedInput = emailOrUsername.ToLowerInvariant();
+        var authUser = await _authUserRepo.FirstOrDefaultAsync(u => u.Email == normalizedInput);
+
+        if (authUser is null)
+        {
+            var profileByUsername = await _profileRepo.FirstOrDefaultAsync(p => p.UsernameSlug == normalizedInput);
+            if (profileByUsername is not null)
+                authUser = await _authUserRepo.FirstOrDefaultAsync(u => u.Id == profileByUsername.AuthUserId);
+        }
 
         if (authUser is not null)
         {
             var profile = await _profileRepo.FirstOrDefaultAsync(p => p.AuthUserId == authUser.Id);
-            var toName = profile?.DisplayName ?? normalizedEmail.Split('@')[0];
+            if (profile is null)
+                return Result.Success(ResponseMessages.CheckYourInbox);
+
+            var toName = profile.DisplayName;
+            var usernameSlug = profile.UsernameSlug;
 
             var token = GenerateResetToken();
-            await _resetTokenService.SaveTokenAsync(normalizedEmail, token, TimeSpan.FromMinutes(15));
+            await _resetTokenService.SaveTokenAsync(usernameSlug, token, TimeSpan.FromMinutes(15));
 
             var frontendUrl = Environment.GetEnvironmentVariable(EnvironmentConstants.FrontendUrl) ?? DefaultsConstants.FrontendUrl;
-            var resetUrl = $"{frontendUrl}/reset-password?email={Uri.EscapeDataString(normalizedEmail)}";
+            var resetUrl = $"{frontendUrl}/reset-password?username={Uri.EscapeDataString(usernameSlug)}&token={Uri.EscapeDataString(token)}";
 
-            var htmlBody = $"""
-            <html>
-            <body>
-                <h2>Password Reset Request</h2>
-                <p>Your reset token is: <strong>{token}</strong></p>
-                <p>This token will expire in 15 minutes.</p>
-                <p>
-                    <a href="{resetUrl}">Click here to reset your password</a>
-                </p>
-                <p>If you did not request this, please ignore this email.</p>
-            </body>
-            </html>
-            """;
+            var template = await _emailTemplateRepo.FirstOrDefaultAsync(t => t.Name == "password-reset");
+            if (template is not null)
+            {
+                var htmlBody = template.HtmlBody
+                    .Replace("{{displayName}}", toName)
+                    .Replace("{{username}}", profile.Username)
+                    .Replace("{{resetUrl}}", resetUrl);
 
-            await _emailService.SendAsync(normalizedEmail, toName, "Orbit - Password Reset", htmlBody);
+                var subject = template.Subject
+                    .Replace("{{displayName}}", toName);
+
+                await _emailService.SendAsync(authUser.Email, toName, subject, htmlBody);
+            }
         }
 
         return Result.Success(ResponseMessages.CheckYourInbox);
     }
 
-    public async Task<Result> ResetPasswordAsync(string email, string token, string newPassword)
+    public async Task<Result> ResetPasswordAsync(string username, string token, string newPassword)
     {
-        var normalizedEmail = email.ToLowerInvariant();
-        var storedToken = await _resetTokenService.GetTokenAsync(normalizedEmail);
+        var usernameSlug = username.ToLowerInvariant();
+        var storedToken = await _resetTokenService.GetTokenAsync(usernameSlug);
 
         if (storedToken is null || storedToken != token)
             return Result.Failure(ResponseMessages.InvalidOrExpiredToken);
 
-        var authUser = await _authUserRepo.FirstOrDefaultAsync(u => u.Email == normalizedEmail);
+        var profile = await _profileRepo.FirstOrDefaultAsync(p => p.UsernameSlug == usernameSlug);
+        if (profile is null)
+            return Result.Failure(ResponseMessages.InvalidOrExpiredToken);
+
+        var authUser = await _authUserRepo.FirstOrDefaultAsync(u => u.Id == profile.AuthUserId);
         if (authUser is null)
             return Result.Failure(ResponseMessages.InvalidOrExpiredToken);
 
@@ -310,9 +328,27 @@ public class AuthService : IAuthService
         _authUserRepo.Update(authUser);
         await _authUserRepo.SaveChangesAsync();
 
-        await _resetTokenService.RemoveTokenAsync(normalizedEmail);
+        await _resetTokenService.RemoveTokenAsync(usernameSlug);
 
         return Result.Success(ResponseMessages.PasswordResetSuccessful);
+    }
+
+    private async Task SendWelcomeEmailAsync(string email, string displayName, string username)
+    {
+        var template = await _emailTemplateRepo.FirstOrDefaultAsync(t => t.Name == "welcome");
+        if (template is null) return;
+
+        var frontendUrl = Environment.GetEnvironmentVariable(EnvironmentConstants.FrontendUrl) ?? DefaultsConstants.FrontendUrl;
+
+        var htmlBody = template.HtmlBody
+            .Replace("{{displayName}}", displayName)
+            .Replace("{{username}}", username)
+            .Replace("{{frontendUrl}}", frontendUrl);
+
+        var subject = template.Subject
+            .Replace("{{displayName}}", displayName);
+
+        await _emailService.SendAsync(email, displayName, subject, htmlBody);
     }
 
     private async Task<UserPrefixResponse?> GetPrefixAsync(Guid? prefixId)

@@ -23,6 +23,8 @@ public static class ResponseMessages
     public const string CheckYourInbox = "If registered, check your inbox";
     public const string PasswordResetSuccessful = "Password reset successful";
 
+    public const string WelcomeEmailSent = "Welcome email sent";
+
     public const string ValidationFailed = "Validation failed";
     public const string InvalidToken = "Invalid token";
     public const string FileRequired = "File is required";
