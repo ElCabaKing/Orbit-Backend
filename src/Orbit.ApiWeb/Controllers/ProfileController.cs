@@ -162,7 +162,7 @@ public class ProfileController : BaseController
     [Authorize]
     [HttpGet("api/profiles/search")]
     [EndpointSummary("Buscar perfiles")]
-    [EndpointDescription("Busca perfiles por nombre de usuario o display name.")]
+    [EndpointDescription("Busca perfiles por nombre de usuario.")]
     [ProducesResponseType<Result<PagedResult<SearchProfileResponse>>>(StatusCodes.Status200OK)]
     [ProducesResponseType<Result>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
@@ -179,4 +179,62 @@ public class ProfileController : BaseController
         return Ok(new { isSuccess = true, data = result.Data });
     }
 
+    [Authorize]
+    [HttpPost("api/profiles/{username}/block")]
+    [EndpointSummary("Bloquear usuario")]
+    [EndpointDescription("Bloquea a un usuario y elimina follows en ambas direcciones.")]
+    [ProducesResponseType<Result>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> BlockUser(string username)
+    {
+        var profileId = GetProfileId();
+        if (profileId is null)
+            return Unauthorized(new { isSuccess = false, message = ResponseMessages.InvalidToken });
+
+        var result = await _profileService.BlockUserAsync(profileId.Value, username);
+
+        if (!result.IsSuccess)
+            return BadRequest(new { isSuccess = false, message = result.Message });
+
+        return Ok(new { isSuccess = true, message = result.Message });
+    }
+
+    [Authorize]
+    [HttpDelete("api/profiles/{username}/block")]
+    [EndpointSummary("Desbloquear usuario")]
+    [EndpointDescription("Desbloquea a un usuario previamente bloqueado.")]
+    [ProducesResponseType<Result>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> UnblockUser(string username)
+    {
+        var profileId = GetProfileId();
+        if (profileId is null)
+            return Unauthorized(new { isSuccess = false, message = ResponseMessages.InvalidToken });
+
+        var result = await _profileService.UnblockUserAsync(profileId.Value, username);
+
+        if (!result.IsSuccess)
+            return BadRequest(new { isSuccess = false, message = result.Message });
+
+        return Ok(new { isSuccess = true, message = result.Message });
+    }
+
+    [Authorize]
+    [HttpGet("api/profile/blocked")]
+    [EndpointSummary("Usuarios bloqueados")]
+    [EndpointDescription("Obtiene la lista paginada de usuarios bloqueados por el perfil autenticado.")]
+    [ProducesResponseType<Result<PagedResult<BlockedUserResponse>>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetBlockedUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    {
+        var profileId = GetProfileId();
+        if (profileId is null)
+            return Unauthorized(new { isSuccess = false, message = ResponseMessages.InvalidToken });
+
+        var result = await _profileService.GetBlockedUsersAsync(profileId.Value, page, Math.Clamp(pageSize, 1, 50));
+
+        return Ok(new { isSuccess = true, data = result.Data });
+    }
 }

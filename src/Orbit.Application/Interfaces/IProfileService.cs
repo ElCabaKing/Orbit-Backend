@@ -12,4 +12,8 @@ public interface IProfileService
     Task<Result<ProfileResponse>> UpdateBannerAsync(Guid authUserId, Stream fileStream, string fileName);
     Task<Result<ProfileResponse>> RemoveBannerAsync(Guid authUserId);
     Task<Result<PagedResult<SearchProfileResponse>>> SearchProfilesAsync(string query, Guid? currentProfileId, int page, int pageSize);
+
+    Task<Result> BlockUserAsync(Guid blockerProfileId, string username);
+    Task<Result> UnblockUserAsync(Guid blockerProfileId, string username);
+    Task<Result<PagedResult<BlockedUserResponse>>> GetBlockedUsersAsync(Guid profileId, int page, int pageSize);
 }

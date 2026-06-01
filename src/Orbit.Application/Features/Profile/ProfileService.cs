@@ -12,17 +12,20 @@ public class ProfileService : IProfileService
     private readonly IGenericRepository<Orbit.Domain.Entities.Profile> _profileRepo;
     private readonly IGenericRepository<UserPrefix> _prefixRepo;
     private readonly IGenericRepository<Follow> _followRepo;
+    private readonly IGenericRepository<UserBan> _userBanRepo;
     private readonly ICloudinaryService _cloudinaryService;
 
     public ProfileService(
         IGenericRepository<Orbit.Domain.Entities.Profile> profileRepo,
         IGenericRepository<UserPrefix> prefixRepo,
         IGenericRepository<Follow> followRepo,
+        IGenericRepository<UserBan> userBanRepo,
         ICloudinaryService cloudinaryService)
     {
         _profileRepo = profileRepo;
         _prefixRepo = prefixRepo;
         _followRepo = followRepo;
+        _userBanRepo = userBanRepo;
         _cloudinaryService = cloudinaryService;
     }
 
@@ -186,6 +189,138 @@ public class ProfileService : IProfileService
         )).ToList();
 
         return Result<PagedResult<SearchProfileResponse>>.Success(new PagedResult<SearchProfileResponse>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize,
+        });
+    }
+
+    public async Task<Result> BlockUserAsync(Guid blockerProfileId, string username)
+    {
+        var slug = username.ToLowerInvariant();
+        var target = await _profileRepo.FirstOrDefaultAsync(p => p.UsernameSlug == slug);
+        if (target is null)
+            return Result.Failure(ResponseMessages.ProfileNotFound);
+
+        if (target.Id == blockerProfileId)
+            return Result.Failure(ResponseMessages.CannotBlockYourself);
+
+        var existingBan = await _userBanRepo.FirstOrDefaultAsync(b =>
+            b.BlockerProfileId == blockerProfileId && b.BlockedProfileId == target.Id);
+        if (existingBan is not null)
+            return Result.Failure(ResponseMessages.AlreadyBlocked);
+
+        var blockedByTarget = await _userBanRepo.FirstOrDefaultAsync(b =>
+            b.BlockerProfileId == target.Id && b.BlockedProfileId == blockerProfileId);
+        if (blockedByTarget is not null)
+            return Result.Failure(ResponseMessages.BlockedByUser);
+
+        var followToTarget = await _followRepo.FirstOrDefaultAsync(f =>
+            f.FollowerId == blockerProfileId && f.FollowingId == target.Id);
+        if (followToTarget is not null)
+        {
+            await _followRepo.DeleteAsync(followToTarget.Id);
+            target.FollowersCount = Math.Max(0, target.FollowersCount - 1);
+            target.UpdatedAt = DateTime.UtcNow;
+            _profileRepo.Update(target);
+            await _profileRepo.SaveChangesAsync();
+
+            var blockerProfile = await _profileRepo.GetByIdAsync(blockerProfileId);
+            if (blockerProfile is not null)
+            {
+                blockerProfile.FollowingCount = Math.Max(0, blockerProfile.FollowingCount - 1);
+                blockerProfile.UpdatedAt = DateTime.UtcNow;
+                _profileRepo.Update(blockerProfile);
+                await _profileRepo.SaveChangesAsync();
+            }
+        }
+
+        var followFromTarget = await _followRepo.FirstOrDefaultAsync(f =>
+            f.FollowerId == target.Id && f.FollowingId == blockerProfileId);
+        if (followFromTarget is not null)
+        {
+            await _followRepo.DeleteAsync(followFromTarget.Id);
+            target.FollowingCount = Math.Max(0, target.FollowingCount - 1);
+            target.UpdatedAt = DateTime.UtcNow;
+            _profileRepo.Update(target);
+            await _profileRepo.SaveChangesAsync();
+
+            var blockerProfile = await _profileRepo.GetByIdAsync(blockerProfileId);
+            if (blockerProfile is not null)
+            {
+                blockerProfile.FollowersCount = Math.Max(0, blockerProfile.FollowersCount - 1);
+                blockerProfile.UpdatedAt = DateTime.UtcNow;
+                _profileRepo.Update(blockerProfile);
+                await _profileRepo.SaveChangesAsync();
+            }
+        }
+
+        var ban = new UserBan
+        {
+            Id = Guid.NewGuid(),
+            BlockerProfileId = blockerProfileId,
+            BlockedProfileId = target.Id,
+            CreatedAt = DateTime.UtcNow,
+        };
+
+        await _userBanRepo.CreateAsync(ban);
+        return Result.Success(ResponseMessages.BlockSuccessful);
+    }
+
+    public async Task<Result> UnblockUserAsync(Guid blockerProfileId, string username)
+    {
+        var slug = username.ToLowerInvariant();
+        var target = await _profileRepo.FirstOrDefaultAsync(p => p.UsernameSlug == slug);
+        if (target is null)
+            return Result.Failure(ResponseMessages.ProfileNotFound);
+
+        var ban = await _userBanRepo.FirstOrDefaultAsync(b =>
+            b.BlockerProfileId == blockerProfileId && b.BlockedProfileId == target.Id);
+        if (ban is null)
+            return Result.Failure(ResponseMessages.NotBlocked);
+
+        await _userBanRepo.DeleteAsync(ban.Id);
+        return Result.Success(ResponseMessages.UnblockSuccessful);
+    }
+
+    public async Task<Result<PagedResult<BlockedUserResponse>>> GetBlockedUsersAsync(
+        Guid profileId, int page, int pageSize)
+    {
+        var skip = (page - 1) * pageSize;
+        var bans = await _userBanRepo.GetPagedAsync(
+            b => b.BlockerProfileId == profileId,
+            b => b.CreatedAt,
+            skip,
+            pageSize);
+
+        var totalCount = await _userBanRepo.CountAsync(b => b.BlockerProfileId == profileId);
+
+        var blockedProfileIds = bans.Select(b => b.BlockedProfileId).Distinct().ToList();
+        var profiles = new List<Orbit.Domain.Entities.Profile>();
+        foreach (var pid in blockedProfileIds)
+        {
+            var p = await _profileRepo.GetByIdAsync(pid);
+            if (p is not null) profiles.Add(p);
+        }
+        var profileMap = profiles.ToDictionary(p => p.Id);
+
+        var banMap = bans.ToDictionary(b => b.BlockedProfileId);
+
+        var items = blockedProfileIds
+            .Select(pid =>
+            {
+                var p = profileMap.GetValueOrDefault(pid);
+                var ban = banMap.GetValueOrDefault(pid);
+                return p is not null && ban is not null
+                    ? new BlockedUserResponse(p.Id, p.Username, p.DisplayName, p.ProfilePictureUrl, ban.CreatedAt)
+                    : null;
+            })
+            .OfType<BlockedUserResponse>()
+            .ToList();
+
+        return Result<PagedResult<BlockedUserResponse>>.Success(new PagedResult<BlockedUserResponse>
         {
             Items = items,
             TotalCount = totalCount,

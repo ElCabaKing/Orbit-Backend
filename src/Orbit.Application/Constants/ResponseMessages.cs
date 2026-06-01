@@ -56,4 +56,12 @@ public static class ResponseMessages
     // Comments
     public const string ParentCommentNotFound = "Parent comment not found";
     public const string ParentCommentNotInSamePost = "Parent comment does not belong to this post";
+
+    // Block
+    public const string CannotBlockYourself = "Cannot block yourself";
+    public const string AlreadyBlocked = "User is already blocked";
+    public const string BlockedByUser = "Cannot block this user because they have blocked you";
+    public const string NotBlocked = "User is not blocked";
+    public const string BlockSuccessful = "User blocked successfully";
+    public const string UnblockSuccessful = "User unblocked successfully";
 }
