@@ -10,5 +10,6 @@ public record ProfileResponse(
     int FollowersCount,
     int FollowingCount,
     bool IsVerified,
-    UserPrefixResponse? Prefix
+    UserPrefixResponse? Prefix,
+    bool IsFollowing
 );

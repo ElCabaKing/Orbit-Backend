@@ -109,7 +109,7 @@ public class FollowService : IFollowService
 
         var totalCount = await _followRepo.CountAsync(f => f.FollowingId == profile.Id);
 
-        var items = await BuildAuthorResponseList(followers, f => f.FollowerId);
+        var items = await BuildAuthorResponseList(followers, f => f.FollowerId, currentProfileId);
         return Result<PagedResult<PostAuthorResponse>>.Success(new PagedResult<PostAuthorResponse>
         {
             Items = items,
@@ -136,7 +136,7 @@ public class FollowService : IFollowService
 
         var totalCount = await _followRepo.CountAsync(f => f.FollowerId == profile.Id);
 
-        var items = await BuildAuthorResponseList(following, f => f.FollowingId);
+        var items = await BuildAuthorResponseList(following, f => f.FollowingId, currentProfileId);
         return Result<PagedResult<PostAuthorResponse>>.Success(new PagedResult<PostAuthorResponse>
         {
             Items = items,
@@ -147,7 +147,7 @@ public class FollowService : IFollowService
     }
 
     private async Task<List<PostAuthorResponse>> BuildAuthorResponseList(
-        List<Follow> follows, Func<Follow, Guid> profileIdSelector)
+        List<Follow> follows, Func<Follow, Guid> profileIdSelector, Guid? currentProfileId = null)
     {
         var profileIds = follows.Select(profileIdSelector).Distinct().ToList();
         var profiles = new List<Profile>();
@@ -158,14 +158,23 @@ public class FollowService : IFollowService
         }
         var profileMap = profiles.ToDictionary(p => p.Id);
 
+        HashSet<Guid> followedIds = [];
+        if (currentProfileId.HasValue)
+        {
+            var existingFollows = await _followRepo.GetListAsync(f =>
+                f.FollowerId == currentProfileId.Value && profileIds.Contains(f.FollowingId));
+            followedIds = existingFollows.Select(f => f.FollowingId).ToHashSet();
+        }
+
         return follows
             .Select(f =>
             {
                 var pid = profileIdSelector(f);
                 var p = profileMap.GetValueOrDefault(pid);
+                var isFollowing = currentProfileId.HasValue && followedIds.Contains(pid);
                 return p is not null
-                    ? new PostAuthorResponse(p.Id, p.Username, p.DisplayName, p.ProfilePictureUrl)
-                    : new PostAuthorResponse(pid, "Unknown", "Unknown", null);
+                    ? new PostAuthorResponse(p.Id, p.Username, p.DisplayName, p.ProfilePictureUrl, isFollowing)
+                    : new PostAuthorResponse(pid, "Unknown", "Unknown", null, false);
             })
             .ToList();
     }

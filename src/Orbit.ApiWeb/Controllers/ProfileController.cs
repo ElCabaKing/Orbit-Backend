@@ -30,7 +30,8 @@ public class ProfileController : BaseController
     [ProducesResponseType<Result>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetByUsername(string username)
     {
-        var result = await _profileService.GetProfileByUsernameAsync(username);
+        var currentProfileId = GetProfileId();
+        var result = await _profileService.GetProfileByUsernameAsync(username, currentProfileId);
 
         if (!result.IsSuccess)
             return NotFound(new { isSuccess = false, message = result.Message });

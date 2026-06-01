@@ -4,5 +4,6 @@ public record PostAuthorResponse(
     Guid ProfileId,
     string Username,
     string DisplayName,
-    string? AvatarUrl
+    string? AvatarUrl,
+    bool IsFollowing
 );

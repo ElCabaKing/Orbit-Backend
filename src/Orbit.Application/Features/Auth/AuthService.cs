@@ -371,7 +371,8 @@ public class AuthService : IAuthService
             profile.FollowersCount,
             profile.FollowingCount,
             profile.IsVerified,
-            prefix
+            prefix,
+            false
         );
     }
 }

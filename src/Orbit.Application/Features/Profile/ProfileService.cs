@@ -29,15 +29,23 @@ public class ProfileService : IProfileService
         _cloudinaryService = cloudinaryService;
     }
 
-    public async Task<Result<ProfileResponse>> GetProfileByUsernameAsync(string username)
+    public async Task<Result<ProfileResponse>> GetProfileByUsernameAsync(string username, Guid? currentProfileId = null)
     {
         var slug = username.ToLowerInvariant();
         var profile = await _profileRepo.FirstOrDefaultAsync(p => p.UsernameSlug == slug, p => p.Prefix);
         if (profile is null)
             return Result<ProfileResponse>.Failure(ResponseMessages.ProfileNotFound);
 
+        bool isFollowing = false;
+        if (currentProfileId.HasValue && currentProfileId.Value != profile.Id)
+        {
+            var follow = await _followRepo.FirstOrDefaultAsync(f =>
+                f.FollowerId == currentProfileId.Value && f.FollowingId == profile.Id);
+            isFollowing = follow is not null;
+        }
+
         var prefixResponse = await GetPrefixAsync(profile.PrefixId);
-        return Result<ProfileResponse>.Success(BuildResponse(profile, prefixResponse));
+        return Result<ProfileResponse>.Success(BuildResponse(profile, prefixResponse, isFollowing));
     }
 
     public async Task<Result<ProfileResponse>> UpdateProfileAsync(Guid authUserId, string? displayName, string? bio, bool? isPrivate)
@@ -337,7 +345,7 @@ public class ProfileService : IProfileService
         return prefix is null ? null : new UserPrefixResponse(prefix.Id, prefix.Name, prefix.Color, prefix.IconUrl);
     }
 
-    private static ProfileResponse BuildResponse(Orbit.Domain.Entities.Profile profile, UserPrefixResponse? prefix)
+    private static ProfileResponse BuildResponse(Orbit.Domain.Entities.Profile profile, UserPrefixResponse? prefix, bool isFollowing = false)
     {
         return new ProfileResponse(
             profile.Id,
@@ -349,7 +357,8 @@ public class ProfileService : IProfileService
             profile.FollowersCount,
             profile.FollowingCount,
             profile.IsVerified,
-            prefix
+            prefix,
+            isFollowing
         );
     }
 }

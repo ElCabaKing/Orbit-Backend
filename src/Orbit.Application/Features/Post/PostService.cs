@@ -15,6 +15,7 @@ public class PostService : IPostService
     private readonly IGenericRepository<Comment> _commentRepo;
     private readonly IGenericRepository<PostMedia> _mediaRepo;
     private readonly IGenericRepository<CommentLike> _commentLikeRepo;
+    private readonly IGenericRepository<Follow> _followRepo;
     private readonly ICloudinaryService _cloudinaryService;
 
     public PostService(
@@ -24,6 +25,7 @@ public class PostService : IPostService
         IGenericRepository<Comment> commentRepo,
         IGenericRepository<PostMedia> mediaRepo,
         IGenericRepository<CommentLike> commentLikeRepo,
+        IGenericRepository<Follow> followRepo,
         ICloudinaryService cloudinaryService)
     {
         _postRepo = postRepo;
@@ -32,6 +34,7 @@ public class PostService : IPostService
         _commentRepo = commentRepo;
         _mediaRepo = mediaRepo;
         _commentLikeRepo = commentLikeRepo;
+        _followRepo = followRepo;
         _cloudinaryService = cloudinaryService;
     }
 
@@ -107,15 +110,23 @@ public class PostService : IPostService
             return Result<PostResponse>.Failure(ResponseMessages.PostNotFound);
 
         bool isLiked = false;
+        bool isFollowing = false;
         if (currentProfileId.HasValue)
         {
             var like = await _likeRepo.FirstOrDefaultAsync(l => l.ProfileId == currentProfileId.Value && l.PostId == postId);
             isLiked = like is not null;
+
+            if (profile.Id != currentProfileId.Value)
+            {
+                var follow = await _followRepo.FirstOrDefaultAsync(f =>
+                    f.FollowerId == currentProfileId.Value && f.FollowingId == profile.Id);
+                isFollowing = follow is not null;
+            }
         }
 
         var media = await _mediaRepo.GetListAsync(m => m.PostId == postId);
 
-        var author = BuildAuthorResponse(profile);
+        var author = BuildAuthorResponse(profile, isFollowing);
         return Result<PostResponse>.Success(BuildPostResponse(post, author, isLiked, media));
     }
 
@@ -348,7 +359,7 @@ public class PostService : IPostService
         }
 
         var profile = await _profileRepo.GetByIdAsync(profileId);
-        var author = profile is not null ? BuildAuthorResponse(profile) : new PostAuthorResponse(profileId, "Unknown", "Unknown", null);
+        var author = profile is not null ? BuildAuthorResponse(profile) : new PostAuthorResponse(profileId, "Unknown", "Unknown", null, false);
 
         return Result<CommentResponse>.Success(new CommentResponse(comment.Id, author, comment.Content, comment.ParentCommentId, comment.ReplyCount, comment.LikeCount, false, comment.CreatedAt));
     }
@@ -375,10 +386,19 @@ public class PostService : IPostService
 
         var likedCommentIds = await GetLikedCommentIds(comments, currentProfileId);
 
+        HashSet<Guid> followedProfileIds = [];
+        if (currentProfileId.HasValue && profileIds.Count > 0)
+        {
+            var follows = await _followRepo.GetListAsync(f =>
+                f.FollowerId == currentProfileId.Value && profileIds.Contains(f.FollowingId));
+            followedProfileIds = follows.Select(f => f.FollowingId).ToHashSet();
+        }
+
         var items = comments.Select(c =>
         {
             var p = profileMap.GetValueOrDefault(c.ProfileId);
-            var author = p is not null ? BuildAuthorResponse(p) : new PostAuthorResponse(c.ProfileId, "Unknown", "Unknown", null);
+            var isFollowing = currentProfileId.HasValue && followedProfileIds.Contains(c.ProfileId);
+            var author = p is not null ? BuildAuthorResponse(p, isFollowing) : new PostAuthorResponse(c.ProfileId, "Unknown", "Unknown", null, false);
             return new CommentResponse(c.Id, author, c.Content, c.ParentCommentId, c.ReplyCount, c.LikeCount, likedCommentIds.Contains(c.Id), c.CreatedAt);
         }).ToList();
 
@@ -417,10 +437,19 @@ public class PostService : IPostService
 
         var likedCommentIds = await GetLikedCommentIds(replies, currentProfileId);
 
+        HashSet<Guid> followedProfileIds = [];
+        if (currentProfileId.HasValue && profileIds.Count > 0)
+        {
+            var follows = await _followRepo.GetListAsync(f =>
+                f.FollowerId == currentProfileId.Value && profileIds.Contains(f.FollowingId));
+            followedProfileIds = follows.Select(f => f.FollowingId).ToHashSet();
+        }
+
         var items = replies.Select(c =>
         {
             var p = profileMap.GetValueOrDefault(c.ProfileId);
-            var author = p is not null ? BuildAuthorResponse(p) : new PostAuthorResponse(c.ProfileId, "Unknown", "Unknown", null);
+            var isFollowing = currentProfileId.HasValue && followedProfileIds.Contains(c.ProfileId);
+            var author = p is not null ? BuildAuthorResponse(p, isFollowing) : new PostAuthorResponse(c.ProfileId, "Unknown", "Unknown", null, false);
             return new CommentResponse(c.Id, author, c.Content, c.ParentCommentId, c.ReplyCount, c.LikeCount, likedCommentIds.Contains(c.Id), c.CreatedAt);
         }).ToList();
 
@@ -546,12 +575,17 @@ public class PostService : IPostService
         var profileMap = profiles.ToDictionary(p => p.Id);
 
         HashSet<Guid> likedPostIds = [];
+        HashSet<Guid> followedProfileIds = [];
         if (currentProfileId.HasValue && posts.Count > 0)
         {
             var postIds = posts.Select(p => p.Id).ToList();
             var likes = await _likeRepo.GetListAsync(l =>
                 l.ProfileId == currentProfileId.Value && postIds.Contains(l.PostId));
             likedPostIds = likes.Select(l => l.PostId).ToHashSet();
+
+            var follows = await _followRepo.GetListAsync(f =>
+                f.FollowerId == currentProfileId.Value && profileIds.Contains(f.FollowingId));
+            followedProfileIds = follows.Select(f => f.FollowingId).ToHashSet();
         }
 
         Dictionary<Guid, List<PostMedia>> mediaMap = [];
@@ -565,9 +599,10 @@ public class PostService : IPostService
         var items = posts.Select(p =>
         {
             var prof = profileMap.GetValueOrDefault(p.ProfileId);
+            var isFollowing = currentProfileId.HasValue && followedProfileIds.Contains(p.ProfileId);
             var author = prof is not null
-                ? BuildAuthorResponse(prof)
-                : new PostAuthorResponse(p.ProfileId, "Unknown", "Unknown", null);
+                ? BuildAuthorResponse(prof, isFollowing)
+                : new PostAuthorResponse(p.ProfileId, "Unknown", "Unknown", null, false);
             var media = mediaMap.GetValueOrDefault(p.Id) ?? [];
             return BuildPostResponse(p, author, likedPostIds.Contains(p.Id), media);
         }).ToList();
@@ -581,13 +616,14 @@ public class PostService : IPostService
         });
     }
 
-    private static PostAuthorResponse BuildAuthorResponse(Profile profile)
+    private static PostAuthorResponse BuildAuthorResponse(Profile profile, bool isFollowing = false)
     {
         return new PostAuthorResponse(
             profile.Id,
             profile.Username,
             profile.DisplayName,
-            profile.ProfilePictureUrl
+            profile.ProfilePictureUrl,
+            isFollowing
         );
     }
 
