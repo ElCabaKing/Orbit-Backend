@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Orbit.ApiWeb.DTOs;
 using Orbit.ApiWeb.Hubs;
+using Orbit.Application.Common;
 using Orbit.Application.Constants;
+using Orbit.Application.DTOs;
 using Orbit.Application.Interfaces;
 
 namespace Orbit.ApiWeb.Controllers;
@@ -30,6 +32,11 @@ public class ChatController : BaseController
     }
 
     [HttpPost("api/chats")]
+    [EndpointSummary("Crear conversación")]
+    [EndpointDescription("Crea una nueva conversación con otro usuario.")]
+    [ProducesResponseType<Result<ChatResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> CreateConversation([FromBody] CreateChatRequest request)
     {
         var validationResult = await _createChatValidator.ValidateAsync(request);
@@ -59,6 +66,10 @@ public class ChatController : BaseController
     }
 
     [HttpGet("api/chats")]
+    [EndpointSummary("Listar conversaciones")]
+    [EndpointDescription("Obtiene las conversaciones del usuario autenticado.")]
+    [ProducesResponseType<Result<PagedResult<ChatResponse>>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetConversations(
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
@@ -73,6 +84,11 @@ public class ChatController : BaseController
     }
 
     [HttpGet("api/chats/{conversationId}/messages")]
+    [EndpointSummary("Obtener mensajes")]
+    [EndpointDescription("Obtiene los mensajes de una conversación.")]
+    [ProducesResponseType<Result<PagedResult<MessageResponse>>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<Result>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetMessages(
         Guid conversationId,
         [FromQuery] int page = 1, [FromQuery] int pageSize = 50)
@@ -91,6 +107,11 @@ public class ChatController : BaseController
     }
 
     [HttpPost("api/chats/{conversationId}/messages")]
+    [EndpointSummary("Enviar mensaje")]
+    [EndpointDescription("Envía un mensaje en una conversación.")]
+    [ProducesResponseType<Result<MessageResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> SendMessage(Guid conversationId, [FromBody] SendMessageRequest request)
     {
         var validationResult = await _sendMessageValidator.ValidateAsync(request);
@@ -127,6 +148,11 @@ public class ChatController : BaseController
     }
 
     [HttpDelete("api/chats/{conversationId}/messages/{messageId}")]
+    [EndpointSummary("Eliminar mensaje")]
+    [EndpointDescription("Elimina un mensaje específico de una conversación.")]
+    [ProducesResponseType<Result>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> DeleteMessage(Guid conversationId, Guid messageId)
     {
         var profileId = GetProfileId();

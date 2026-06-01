@@ -11,6 +11,7 @@ using Orbit.Application.Features.Profiles;
 using Orbit.Application.Interfaces;
 using Orbit.Infrastructure.Extensions;
 using Orbit.Shared.Constants;
+using Scalar.AspNetCore;
 
 var envPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", ".env");
 if (File.Exists(envPath))
@@ -84,6 +85,7 @@ builder.Services.AddCors(options =>
               .AllowCredentials());
 });
 builder.Services.AddAuthorization();
+builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 builder.Services.AddSignalR(options =>
 {
@@ -98,5 +100,13 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<Orbit.ApiWeb.Hubs.ChatHub>("/hubs/chat");
+
+app.MapOpenApi();
+app.MapScalarApiReference(options =>
+{
+    options
+        .WithTitle("Orbit API")
+        .WithTheme(ScalarTheme.Purple);
+});
 
 app.Run();

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Orbit.ApiWeb.Constants;
 using Orbit.ApiWeb.DTOs;
+using Orbit.Application.Common;
 using Orbit.Application.Constants;
 using Orbit.Application.DTOs;
 using Orbit.Application.Interfaces;
@@ -29,6 +30,11 @@ public class PostController : ControllerBase
 
     [Authorize]
     [HttpPost("api/posts")]
+    [EndpointSummary("Crear publicación")]
+    [EndpointDescription("Crea una nueva publicación con contenido opcional y archivos multimedia.")]
+    [ProducesResponseType<Result<PostResponse>>(StatusCodes.Status201Created)]
+    [ProducesResponseType<Result>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Create([FromForm] CreatePostRequest request)
     {
         var validationResult = await _createPostValidator.ValidateAsync(request);
@@ -62,6 +68,10 @@ public class PostController : ControllerBase
 
     [AllowAnonymous]
     [HttpGet("api/posts/{id:guid}")]
+    [EndpointSummary("Obtener publicación")]
+    [EndpointDescription("Obtiene una publicación por su ID.")]
+    [ProducesResponseType<Result<PostResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var currentProfileId = GetProfileId();
@@ -75,6 +85,10 @@ public class PostController : ControllerBase
 
     [Authorize]
     [HttpGet("api/posts/timeline")]
+    [EndpointSummary("Timeline")]
+    [EndpointDescription("Obtiene el timeline con publicaciones de los usuarios seguidos.")]
+    [ProducesResponseType<Result<PagedResult<PostResponse>>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetTimeline([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         var currentProfileId = GetProfileId();
@@ -85,6 +99,10 @@ public class PostController : ControllerBase
 
     [AllowAnonymous]
     [HttpGet("api/profiles/{username}/posts")]
+    [EndpointSummary("Publicaciones de perfil")]
+    [EndpointDescription("Obtiene las publicaciones de un perfil específico por username.")]
+    [ProducesResponseType<Result<PagedResult<PostResponse>>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetProfilePosts(string username, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         var currentProfileId = GetProfileId();
@@ -98,6 +116,12 @@ public class PostController : ControllerBase
 
     [Authorize]
     [HttpPut("api/posts/{id:guid}")]
+    [EndpointSummary("Actualizar publicación")]
+    [EndpointDescription("Actualiza el contenido y/o multimedia de una publicación existente.")]
+    [ProducesResponseType<Result<PostResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<Result>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(Guid id, [FromForm] UpdatePostRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Content) || request.Content.Length > 1000)
@@ -126,6 +150,11 @@ public class PostController : ControllerBase
 
     [Authorize]
     [HttpDelete("api/posts/{id:guid}")]
+    [EndpointSummary("Eliminar publicación")]
+    [EndpointDescription("Elimina una publicación existente del usuario autenticado.")]
+    [ProducesResponseType<Result>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<Result>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(Guid id)
     {
         var authUserId = GetAuthUserId();
@@ -142,6 +171,11 @@ public class PostController : ControllerBase
 
     [Authorize]
     [HttpPost("api/posts/{id:guid}/like")]
+    [EndpointSummary("Dar like")]
+    [EndpointDescription("Da like a una publicación.")]
+    [ProducesResponseType<Result<LikeResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<Result>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Like(Guid id)
     {
         var profileId = GetProfileId();
@@ -158,6 +192,11 @@ public class PostController : ControllerBase
 
     [Authorize]
     [HttpDelete("api/posts/{id:guid}/like")]
+    [EndpointSummary("Quitar like")]
+    [EndpointDescription("Quita el like de una publicación.")]
+    [ProducesResponseType<Result<LikeResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<Result>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Unlike(Guid id)
     {
         var profileId = GetProfileId();
@@ -174,6 +213,12 @@ public class PostController : ControllerBase
 
     [Authorize]
     [HttpPost("api/posts/{id:guid}/comments")]
+    [EndpointSummary("Crear comentario")]
+    [EndpointDescription("Crea un comentario en una publicación.")]
+    [ProducesResponseType<Result<CommentResponse>>(StatusCodes.Status201Created)]
+    [ProducesResponseType<Result>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<Result>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> CreateComment(Guid id, [FromBody] CreateCommentRequest request)
     {
         var validationResult = await _createCommentValidator.ValidateAsync(request);
@@ -197,6 +242,9 @@ public class PostController : ControllerBase
 
     [AllowAnonymous]
     [HttpGet("api/posts/{id:guid}/comments")]
+    [EndpointSummary("Obtener comentarios")]
+    [EndpointDescription("Obtiene los comentarios de una publicación.")]
+    [ProducesResponseType<Result<PagedResult<CommentResponse>>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetComments(Guid id, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         var result = await _postService.GetCommentsAsync(id, page, Math.Clamp(pageSize, 1, 100));
@@ -206,6 +254,11 @@ public class PostController : ControllerBase
 
     [Authorize]
     [HttpDelete("api/comments/{id:guid}")]
+    [EndpointSummary("Eliminar comentario")]
+    [EndpointDescription("Elimina un comentario existente.")]
+    [ProducesResponseType<Result>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<Result>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteComment(Guid id)
     {
         var authUserId = GetAuthUserId();
