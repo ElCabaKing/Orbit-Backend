@@ -160,13 +160,13 @@ public class ProfileService : IProfileService
         var skip = (page - 1) * pageSize;
 
         var profiles = await _profileRepo.GetPagedAsync(
-            p => p.UsernameSlug.Contains(normalized) || p.DisplayName.ToLower().Contains(normalized),
+            p => p.UsernameSlug.StartsWith(normalized) || p.DisplayName.ToLower().StartsWith(normalized),
             p => p.FollowersCount,
             skip,
             pageSize);
 
         var totalCount = await _profileRepo.CountAsync(
-            p => p.UsernameSlug.Contains(normalized) || p.DisplayName.ToLower().Contains(normalized));
+            p => p.UsernameSlug.StartsWith(normalized) || p.DisplayName.ToLower().StartsWith(normalized));
 
         HashSet<Guid> followedIds = [];
         if (currentProfileId.HasValue)
