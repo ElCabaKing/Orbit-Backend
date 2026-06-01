@@ -247,7 +247,26 @@ public class PostController : ControllerBase
     [ProducesResponseType<Result<PagedResult<CommentResponse>>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetComments(Guid id, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
-        var result = await _postService.GetCommentsAsync(id, page, Math.Clamp(pageSize, 1, 100));
+        var currentProfileId = GetProfileId();
+        var result = await _postService.GetCommentsAsync(id, currentProfileId, page, Math.Clamp(pageSize, 1, 100));
+
+        return Ok(new { isSuccess = true, data = result.Data });
+    }
+
+    [AllowAnonymous]
+    [HttpGet("api/posts/search")]
+    [EndpointSummary("Buscar publicaciones")]
+    [EndpointDescription("Busca publicaciones cuyo contenido contenga el texto especificado.")]
+    [ProducesResponseType<Result<PagedResult<PostResponse>>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> SearchPosts(
+        [FromQuery] string q, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    {
+        if (string.IsNullOrWhiteSpace(q) || q.Length < 2)
+            return BadRequest(new { isSuccess = false, message = "Search query must be at least 2 characters" });
+
+        var currentProfileId = GetProfileId();
+        var result = await _postService.SearchPostsAsync(q, currentProfileId, page, Math.Clamp(pageSize, 1, 100));
 
         return Ok(new { isSuccess = true, data = result.Data });
     }
@@ -260,7 +279,50 @@ public class PostController : ControllerBase
     [ProducesResponseType<Result>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetCommentReplies(Guid id, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
-        var result = await _postService.GetCommentRepliesAsync(id, page, Math.Clamp(pageSize, 1, 100));
+        var currentProfileId = GetProfileId();
+        var result = await _postService.GetCommentRepliesAsync(id, currentProfileId, page, Math.Clamp(pageSize, 1, 100));
+
+        if (!result.IsSuccess)
+            return NotFound(new { isSuccess = false, message = result.Message });
+
+        return Ok(new { isSuccess = true, data = result.Data });
+    }
+
+    [Authorize]
+    [HttpPost("api/comments/{id:guid}/like")]
+    [EndpointSummary("Dar like a comentario")]
+    [EndpointDescription("Da like a un comentario.")]
+    [ProducesResponseType<Result<CommentLikeResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<Result>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> LikeComment(Guid id)
+    {
+        var profileId = GetProfileId();
+        if (profileId is null)
+            return Unauthorized(new { isSuccess = false, message = ResponseMessages.InvalidToken });
+
+        var result = await _postService.LikeCommentAsync(profileId.Value, id);
+
+        if (!result.IsSuccess)
+            return NotFound(new { isSuccess = false, message = result.Message });
+
+        return Ok(new { isSuccess = true, data = result.Data });
+    }
+
+    [Authorize]
+    [HttpDelete("api/comments/{id:guid}/like")]
+    [EndpointSummary("Quitar like a comentario")]
+    [EndpointDescription("Quita el like de un comentario.")]
+    [ProducesResponseType<Result<CommentLikeResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<Result>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UnlikeComment(Guid id)
+    {
+        var profileId = GetProfileId();
+        if (profileId is null)
+            return Unauthorized(new { isSuccess = false, message = ResponseMessages.InvalidToken });
+
+        var result = await _postService.UnlikeCommentAsync(profileId.Value, id);
 
         if (!result.IsSuccess)
             return NotFound(new { isSuccess = false, message = result.Message });

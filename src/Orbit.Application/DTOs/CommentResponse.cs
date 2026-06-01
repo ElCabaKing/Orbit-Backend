@@ -6,5 +6,7 @@ public record CommentResponse(
     string Content,
     Guid? ParentCommentId,
     int ReplyCount,
+    int LikeCount,
+    bool IsLiked,
     DateTime CreatedAt
 );

@@ -32,6 +32,10 @@ public class CommentConfiguration : IEntityTypeConfiguration<Comment>
             .HasColumnName("reply_count")
             .HasDefaultValue(0);
 
+        builder.Property(c => c.LikeCount)
+            .HasColumnName("like_count")
+            .HasDefaultValue(0);
+
         builder.Property(c => c.IsActive)
             .HasColumnName("is_active")
             .HasDefaultValue(true);

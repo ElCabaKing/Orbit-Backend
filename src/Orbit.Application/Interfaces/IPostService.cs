@@ -13,8 +13,11 @@ public interface IPostService
     Task<Result> DeletePostAsync(Guid authUserId, Guid postId);
     Task<Result<LikeResponse>> LikePostAsync(Guid profileId, Guid postId);
     Task<Result<LikeResponse>> UnlikePostAsync(Guid profileId, Guid postId);
+    Task<Result<PagedResult<PostResponse>>> SearchPostsAsync(string query, Guid? currentProfileId, int page, int pageSize);
     Task<Result<CommentResponse>> CreateCommentAsync(Guid profileId, Guid postId, string content, Guid? parentCommentId = null);
-    Task<Result<PagedResult<CommentResponse>>> GetCommentsAsync(Guid postId, int page, int pageSize);
-    Task<Result<PagedResult<CommentResponse>>> GetCommentRepliesAsync(Guid commentId, int page, int pageSize);
+    Task<Result<PagedResult<CommentResponse>>> GetCommentsAsync(Guid postId, Guid? currentProfileId, int page, int pageSize);
+    Task<Result<PagedResult<CommentResponse>>> GetCommentRepliesAsync(Guid commentId, Guid? currentProfileId, int page, int pageSize);
+    Task<Result<CommentLikeResponse>> LikeCommentAsync(Guid profileId, Guid commentId);
+    Task<Result<CommentLikeResponse>> UnlikeCommentAsync(Guid profileId, Guid commentId);
     Task<Result> DeleteCommentAsync(Guid authUserId, Guid commentId);
 }

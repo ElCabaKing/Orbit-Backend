@@ -14,6 +14,7 @@ public class PostService : IPostService
     private readonly IGenericRepository<PostLike> _likeRepo;
     private readonly IGenericRepository<Comment> _commentRepo;
     private readonly IGenericRepository<PostMedia> _mediaRepo;
+    private readonly IGenericRepository<CommentLike> _commentLikeRepo;
     private readonly ICloudinaryService _cloudinaryService;
 
     public PostService(
@@ -22,6 +23,7 @@ public class PostService : IPostService
         IGenericRepository<PostLike> likeRepo,
         IGenericRepository<Comment> commentRepo,
         IGenericRepository<PostMedia> mediaRepo,
+        IGenericRepository<CommentLike> commentLikeRepo,
         ICloudinaryService cloudinaryService)
     {
         _postRepo = postRepo;
@@ -29,6 +31,7 @@ public class PostService : IPostService
         _likeRepo = likeRepo;
         _commentRepo = commentRepo;
         _mediaRepo = mediaRepo;
+        _commentLikeRepo = commentLikeRepo;
         _cloudinaryService = cloudinaryService;
     }
 
@@ -145,6 +148,20 @@ public class PostService : IPostService
             pageSize);
 
         var totalCount = await _postRepo.CountAsync(p => p.ProfileId == profile.Id);
+
+        return await BuildPagedPostResponse(posts, totalCount, page, pageSize, currentProfileId);
+    }
+
+    public async Task<Result<PagedResult<PostResponse>>> SearchPostsAsync(string query, Guid? currentProfileId, int page, int pageSize)
+    {
+        var skip = (page - 1) * pageSize;
+        var posts = await _postRepo.GetPagedAsync(
+            p => p.Content.Contains(query),
+            p => p.CreatedAt,
+            skip,
+            pageSize);
+
+        var totalCount = await _postRepo.CountAsync(p => p.Content.Contains(query));
 
         return await BuildPagedPostResponse(posts, totalCount, page, pageSize, currentProfileId);
     }
@@ -333,10 +350,10 @@ public class PostService : IPostService
         var profile = await _profileRepo.GetByIdAsync(profileId);
         var author = profile is not null ? BuildAuthorResponse(profile) : new PostAuthorResponse(profileId, "Unknown", "Unknown", null);
 
-        return Result<CommentResponse>.Success(new CommentResponse(comment.Id, author, comment.Content, comment.ParentCommentId, comment.ReplyCount, comment.CreatedAt));
+        return Result<CommentResponse>.Success(new CommentResponse(comment.Id, author, comment.Content, comment.ParentCommentId, comment.ReplyCount, comment.LikeCount, false, comment.CreatedAt));
     }
 
-    public async Task<Result<PagedResult<CommentResponse>>> GetCommentsAsync(Guid postId, int page, int pageSize)
+    public async Task<Result<PagedResult<CommentResponse>>> GetCommentsAsync(Guid postId, Guid? currentProfileId, int page, int pageSize)
     {
         var skip = (page - 1) * pageSize;
         var comments = await _commentRepo.GetPagedAsync(
@@ -356,11 +373,13 @@ public class PostService : IPostService
         }
         var profileMap = profiles.ToDictionary(p => p.Id);
 
+        var likedCommentIds = await GetLikedCommentIds(comments, currentProfileId);
+
         var items = comments.Select(c =>
         {
             var p = profileMap.GetValueOrDefault(c.ProfileId);
             var author = p is not null ? BuildAuthorResponse(p) : new PostAuthorResponse(c.ProfileId, "Unknown", "Unknown", null);
-            return new CommentResponse(c.Id, author, c.Content, c.ParentCommentId, c.ReplyCount, c.CreatedAt);
+            return new CommentResponse(c.Id, author, c.Content, c.ParentCommentId, c.ReplyCount, c.LikeCount, likedCommentIds.Contains(c.Id), c.CreatedAt);
         }).ToList();
 
         return Result<PagedResult<CommentResponse>>.Success(new PagedResult<CommentResponse>
@@ -372,7 +391,7 @@ public class PostService : IPostService
         });
     }
 
-    public async Task<Result<PagedResult<CommentResponse>>> GetCommentRepliesAsync(Guid commentId, int page, int pageSize)
+    public async Task<Result<PagedResult<CommentResponse>>> GetCommentRepliesAsync(Guid commentId, Guid? currentProfileId, int page, int pageSize)
     {
         var parentComment = await _commentRepo.GetByIdAsync(commentId);
         if (parentComment is null)
@@ -396,11 +415,13 @@ public class PostService : IPostService
         }
         var profileMap = profiles.ToDictionary(p => p.Id);
 
+        var likedCommentIds = await GetLikedCommentIds(replies, currentProfileId);
+
         var items = replies.Select(c =>
         {
             var p = profileMap.GetValueOrDefault(c.ProfileId);
             var author = p is not null ? BuildAuthorResponse(p) : new PostAuthorResponse(c.ProfileId, "Unknown", "Unknown", null);
-            return new CommentResponse(c.Id, author, c.Content, c.ParentCommentId, c.ReplyCount, c.CreatedAt);
+            return new CommentResponse(c.Id, author, c.Content, c.ParentCommentId, c.ReplyCount, c.LikeCount, likedCommentIds.Contains(c.Id), c.CreatedAt);
         }).ToList();
 
         return Result<PagedResult<CommentResponse>>.Success(new PagedResult<CommentResponse>
@@ -454,6 +475,62 @@ public class PostService : IPostService
         }
 
         return Result.Success(ResponseMessages.CommentDeleted);
+    }
+
+    public async Task<Result<CommentLikeResponse>> LikeCommentAsync(Guid profileId, Guid commentId)
+    {
+        var comment = await _commentRepo.FirstOrDefaultAsync(c => c.Id == commentId);
+        if (comment is null)
+            return Result<CommentLikeResponse>.Failure(ResponseMessages.CommentNotFound);
+
+        var existingLike = await _commentLikeRepo.FirstOrDefaultAsync(cl => cl.ProfileId == profileId && cl.CommentId == commentId);
+        if (existingLike is not null)
+            return Result<CommentLikeResponse>.Success(new CommentLikeResponse(commentId, true, comment.LikeCount));
+
+        var like = new CommentLike
+        {
+            ProfileId = profileId,
+            CommentId = commentId,
+            CreatedAt = DateTime.UtcNow,
+        };
+
+        await _commentLikeRepo.CreateAsync(like);
+
+        comment.LikeCount++;
+        _commentRepo.Update(comment);
+        await _commentRepo.SaveChangesAsync();
+
+        return Result<CommentLikeResponse>.Success(new CommentLikeResponse(commentId, true, comment.LikeCount));
+    }
+
+    public async Task<Result<CommentLikeResponse>> UnlikeCommentAsync(Guid profileId, Guid commentId)
+    {
+        var comment = await _commentRepo.FirstOrDefaultAsync(c => c.Id == commentId);
+        if (comment is null)
+            return Result<CommentLikeResponse>.Failure(ResponseMessages.CommentNotFound);
+
+        var like = await _commentLikeRepo.FirstOrDefaultAsync(cl => cl.ProfileId == profileId && cl.CommentId == commentId);
+        if (like is null)
+            return Result<CommentLikeResponse>.Success(new CommentLikeResponse(commentId, false, comment.LikeCount));
+
+        await _commentLikeRepo.DeleteAsync(like.Id);
+
+        comment.LikeCount = Math.Max(0, comment.LikeCount - 1);
+        _commentRepo.Update(comment);
+        await _commentRepo.SaveChangesAsync();
+
+        return Result<CommentLikeResponse>.Success(new CommentLikeResponse(commentId, false, comment.LikeCount));
+    }
+
+    private async Task<HashSet<Guid>> GetLikedCommentIds(List<Comment> comments, Guid? currentProfileId)
+    {
+        if (!currentProfileId.HasValue || comments.Count == 0)
+            return [];
+
+        var commentIds = comments.Select(c => c.Id).ToList();
+        var likes = await _commentLikeRepo.GetListAsync(cl =>
+            cl.ProfileId == currentProfileId.Value && commentIds.Contains(cl.CommentId));
+        return likes.Select(l => l.CommentId).ToHashSet();
     }
 
     private async Task<Result<PagedResult<PostResponse>>> BuildPagedPostResponse(

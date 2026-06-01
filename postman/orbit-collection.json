@@ -1031,6 +1031,40 @@
           }
         },
         {
+          "name": "Search Posts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response has paginated results\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.eql(true);",
+                  "    pm.expect(json.data).to.have.property('items');",
+                  "    pm.expect(json.data).to.have.property('totalCount');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/search?q=Hello&page=1&pageSize=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", "search"],
+              "query": [
+                { "key": "q", "value": "Hello" },
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
           "name": "Create Comment",
           "event": [
             {
@@ -1117,6 +1151,8 @@
                   "    if (json.data.items.length > 0) {",
                   "        pm.expect(json.data.items[0]).to.have.property('parentCommentId');",
                   "        pm.expect(json.data.items[0]).to.have.property('replyCount');",
+                  "        pm.expect(json.data.items[0]).to.have.property('likeCount');",
+                  "        pm.expect(json.data.items[0]).to.have.property('isLiked');",
                   "    }",
                   "});"
                 ]
@@ -1169,6 +1205,68 @@
                 { "key": "page", "value": "1" },
                 { "key": "pageSize", "value": "20" }
               ]
+            }
+          }
+        },
+        {
+          "name": "Like Comment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response has like data\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.eql(true);",
+                  "    pm.expect(json.data.isLiked).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/comments/{{commentId}}/like",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "comments", "{{commentId}}", "like"]
+            }
+          }
+        },
+        {
+          "name": "Unlike Comment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response has unlike data\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.eql(true);",
+                  "    pm.expect(json.data.isLiked).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/comments/{{commentId}}/like",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "comments", "{{commentId}}", "like"]
             }
           }
         },
