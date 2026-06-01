@@ -19,6 +19,10 @@ public class OrbitDbContext : Microsoft.EntityFrameworkCore.DbContext
     public DbSet<Comment> Comments => Set<Comment>();
     public DbSet<Follow> Follows => Set<Follow>();
     public DbSet<EmailTemplate> EmailTemplates => Set<EmailTemplate>();
+    public DbSet<Conversation> Conversations => Set<Conversation>();
+    public DbSet<ConversationParticipant> ConversationParticipants => Set<ConversationParticipant>();
+    public DbSet<Message> Messages => Set<Message>();
+    public DbSet<MessageMedia> MessageMedia => Set<MessageMedia>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

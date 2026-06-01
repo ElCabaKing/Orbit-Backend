@@ -41,4 +41,13 @@ public static class ResponseMessages
     public const string NotFollowing = "You are not following this user";
     public const string FollowSuccessful = "Follow successful";
     public const string UnfollowSuccessful = "Unfollow successful";
+
+    // Chat
+    public const string MutualFollowRequired = "Both users must follow each other to start a chat";
+    public const string CannotChatYourself = "Cannot start a chat with yourself";
+    public const string ConversationNotFound = "Conversation not found";
+    public const string MessageNotFound = "Message not found";
+    public const string MessageDeleted = "Message deleted successfully";
+    public const string NotConversationParticipant = "You are not a participant in this conversation";
+    public const string NotMessageOwner = "You can only delete your own messages";
 }

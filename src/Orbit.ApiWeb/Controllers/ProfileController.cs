@@ -129,6 +129,21 @@ public class ProfileController : ControllerBase
         return Ok(new { isSuccess = true, data = result.Data });
     }
 
+    [Authorize]
+    [HttpGet("api/profiles/search")]
+    public async Task<IActionResult> Search(
+        [FromQuery] string q, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    {
+        if (string.IsNullOrWhiteSpace(q))
+            return BadRequest(new { isSuccess = false, message = "Search query is required" });
+
+        var currentProfileId = GetProfileId();
+        var result = await _profileService.SearchProfilesAsync(
+            q, currentProfileId, page, Math.Clamp(pageSize, 1, 50));
+
+        return Ok(new { isSuccess = true, data = result.Data });
+    }
+
     private Guid? GetAuthUserId()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
@@ -136,5 +151,13 @@ public class ProfileController : ControllerBase
         if (userIdClaim is null || !Guid.TryParse(userIdClaim, out var authUserId))
             return null;
         return authUserId;
+    }
+
+    private Guid? GetProfileId()
+    {
+        var profileIdClaim = User.FindFirst(ClaimConstants.ProfileId)?.Value;
+        if (profileIdClaim is null || !Guid.TryParse(profileIdClaim, out var profileId))
+            return null;
+        return profileId;
     }
 }
