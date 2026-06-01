@@ -25,6 +25,13 @@ public class CommentConfiguration : IEntityTypeConfiguration<Comment>
             .HasMaxLength(500)
             .IsRequired();
 
+        builder.Property(c => c.ParentCommentId)
+            .HasColumnName("parent_comment_id");
+
+        builder.Property(c => c.ReplyCount)
+            .HasColumnName("reply_count")
+            .HasDefaultValue(0);
+
         builder.Property(c => c.IsActive)
             .HasColumnName("is_active")
             .HasDefaultValue(true);
@@ -47,11 +54,19 @@ public class CommentConfiguration : IEntityTypeConfiguration<Comment>
             .HasForeignKey(c => c.PostId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasOne(c => c.ParentComment)
+            .WithMany(c => c.Replies)
+            .HasForeignKey(c => c.ParentCommentId)
+            .OnDelete(DeleteBehavior.NoAction);
+
         builder.HasIndex(c => c.PostId)
             .HasDatabaseName("ix_comments_post_id");
 
         builder.HasIndex(c => c.ProfileId)
             .HasDatabaseName("ix_comments_profile_id");
+
+        builder.HasIndex(c => c.ParentCommentId)
+            .HasDatabaseName("ix_comments_parent_comment_id");
 
         builder.HasQueryFilter(c => c.IsActive && c.Post.IsActive);
     }

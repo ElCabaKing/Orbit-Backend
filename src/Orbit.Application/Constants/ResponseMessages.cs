@@ -52,4 +52,8 @@ public static class ResponseMessages
     public const string NotMessageOwner = "You can only delete your own messages";
     public const string MessageContentRequired = "Message content is required";
     public const string MessageContentMaxLength = "Message content must not exceed 2000 characters";
+
+    // Comments
+    public const string ParentCommentNotFound = "Parent comment not found";
+    public const string ParentCommentNotInSamePost = "Parent comment does not belong to this post";
 }

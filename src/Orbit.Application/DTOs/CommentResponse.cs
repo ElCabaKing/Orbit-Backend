@@ -4,5 +4,7 @@ public record CommentResponse(
     Guid Id,
     PostAuthorResponse Author,
     string Content,
+    Guid? ParentCommentId,
+    int ReplyCount,
     DateTime CreatedAt
 );

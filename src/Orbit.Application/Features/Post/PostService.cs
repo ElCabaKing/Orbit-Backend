@@ -284,11 +284,21 @@ public class PostService : IPostService
         return Result<LikeResponse>.Success(new LikeResponse(postId, false, post.LikeCount));
     }
 
-    public async Task<Result<CommentResponse>> CreateCommentAsync(Guid profileId, Guid postId, string content)
+    public async Task<Result<CommentResponse>> CreateCommentAsync(Guid profileId, Guid postId, string content, Guid? parentCommentId = null)
     {
         var post = await _postRepo.FirstOrDefaultAsync(p => p.Id == postId);
         if (post is null)
             return Result<CommentResponse>.Failure(ResponseMessages.PostNotFound);
+
+        if (parentCommentId.HasValue)
+        {
+            var parentComment = await _commentRepo.GetByIdAsync(parentCommentId.Value);
+            if (parentComment is null)
+                return Result<CommentResponse>.Failure(ResponseMessages.ParentCommentNotFound);
+
+            if (parentComment.PostId != postId)
+                return Result<CommentResponse>.Failure(ResponseMessages.ParentCommentNotInSamePost);
+        }
 
         var comment = new Comment
         {
@@ -296,6 +306,7 @@ public class PostService : IPostService
             ProfileId = profileId,
             PostId = postId,
             Content = content,
+            ParentCommentId = parentCommentId,
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
@@ -308,22 +319,33 @@ public class PostService : IPostService
         _postRepo.Update(post);
         await _postRepo.SaveChangesAsync();
 
+        if (parentCommentId.HasValue)
+        {
+            var parentComment = await _commentRepo.GetByIdAsync(parentCommentId.Value);
+            if (parentComment is not null)
+            {
+                parentComment.ReplyCount++;
+                _commentRepo.Update(parentComment);
+                await _commentRepo.SaveChangesAsync();
+            }
+        }
+
         var profile = await _profileRepo.GetByIdAsync(profileId);
         var author = profile is not null ? BuildAuthorResponse(profile) : new PostAuthorResponse(profileId, "Unknown", "Unknown", null);
 
-        return Result<CommentResponse>.Success(new CommentResponse(comment.Id, author, comment.Content, comment.CreatedAt));
+        return Result<CommentResponse>.Success(new CommentResponse(comment.Id, author, comment.Content, comment.ParentCommentId, comment.ReplyCount, comment.CreatedAt));
     }
 
     public async Task<Result<PagedResult<CommentResponse>>> GetCommentsAsync(Guid postId, int page, int pageSize)
     {
         var skip = (page - 1) * pageSize;
         var comments = await _commentRepo.GetPagedAsync(
-            c => c.PostId == postId,
+            c => c.PostId == postId && c.ParentCommentId == null,
             c => c.CreatedAt,
             skip,
             pageSize);
 
-        var totalCount = await _commentRepo.CountAsync(c => c.PostId == postId);
+        var totalCount = await _commentRepo.CountAsync(c => c.PostId == postId && c.ParentCommentId == null);
 
         var profileIds = comments.Select(c => c.ProfileId).Distinct().ToList();
         var profiles = new List<Profile>();
@@ -338,7 +360,47 @@ public class PostService : IPostService
         {
             var p = profileMap.GetValueOrDefault(c.ProfileId);
             var author = p is not null ? BuildAuthorResponse(p) : new PostAuthorResponse(c.ProfileId, "Unknown", "Unknown", null);
-            return new CommentResponse(c.Id, author, c.Content, c.CreatedAt);
+            return new CommentResponse(c.Id, author, c.Content, c.ParentCommentId, c.ReplyCount, c.CreatedAt);
+        }).ToList();
+
+        return Result<PagedResult<CommentResponse>>.Success(new PagedResult<CommentResponse>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize,
+        });
+    }
+
+    public async Task<Result<PagedResult<CommentResponse>>> GetCommentRepliesAsync(Guid commentId, int page, int pageSize)
+    {
+        var parentComment = await _commentRepo.GetByIdAsync(commentId);
+        if (parentComment is null)
+            return Result<PagedResult<CommentResponse>>.Failure(ResponseMessages.ParentCommentNotFound);
+
+        var skip = (page - 1) * pageSize;
+        var replies = await _commentRepo.GetPagedAsync(
+            c => c.ParentCommentId == commentId,
+            c => c.CreatedAt,
+            skip,
+            pageSize);
+
+        var totalCount = await _commentRepo.CountAsync(c => c.ParentCommentId == commentId);
+
+        var profileIds = replies.Select(c => c.ProfileId).Distinct().ToList();
+        var profiles = new List<Profile>();
+        foreach (var pid in profileIds)
+        {
+            var p = await _profileRepo.GetByIdAsync(pid);
+            if (p is not null) profiles.Add(p);
+        }
+        var profileMap = profiles.ToDictionary(p => p.Id);
+
+        var items = replies.Select(c =>
+        {
+            var p = profileMap.GetValueOrDefault(c.ProfileId);
+            var author = p is not null ? BuildAuthorResponse(p) : new PostAuthorResponse(c.ProfileId, "Unknown", "Unknown", null);
+            return new CommentResponse(c.Id, author, c.Content, c.ParentCommentId, c.ReplyCount, c.CreatedAt);
         }).ToList();
 
         return Result<PagedResult<CommentResponse>>.Success(new PagedResult<CommentResponse>
@@ -367,6 +429,8 @@ public class PostService : IPostService
                 return Result.Failure(ResponseMessages.NotAuthorized);
         }
 
+        var parentCommentId = comment.ParentCommentId;
+
         await _commentRepo.DeleteAsync(commentId);
 
         var postEntity = await _postRepo.GetByIdAsync(comment.PostId);
@@ -376,6 +440,17 @@ public class PostService : IPostService
             postEntity.UpdatedAt = DateTime.UtcNow;
             _postRepo.Update(postEntity);
             await _postRepo.SaveChangesAsync();
+        }
+
+        if (parentCommentId.HasValue)
+        {
+            var parentComment = await _commentRepo.GetByIdAsync(parentCommentId.Value);
+            if (parentComment is not null)
+            {
+                parentComment.ReplyCount = Math.Max(0, parentComment.ReplyCount - 1);
+                _commentRepo.Update(parentComment);
+                await _commentRepo.SaveChangesAsync();
+            }
         }
 
         return Result.Success(ResponseMessages.CommentDeleted);

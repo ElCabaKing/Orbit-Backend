@@ -232,7 +232,7 @@ public class PostController : ControllerBase
         if (profileId is null)
             return Unauthorized(new { isSuccess = false, message = ResponseMessages.InvalidToken });
 
-        var result = await _postService.CreateCommentAsync(profileId.Value, id, request.Content);
+        var result = await _postService.CreateCommentAsync(profileId.Value, id, request.Content, request.ParentCommentId);
 
         if (!result.IsSuccess)
             return NotFound(new { isSuccess = false, message = result.Message });
@@ -248,6 +248,22 @@ public class PostController : ControllerBase
     public async Task<IActionResult> GetComments(Guid id, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         var result = await _postService.GetCommentsAsync(id, page, Math.Clamp(pageSize, 1, 100));
+
+        return Ok(new { isSuccess = true, data = result.Data });
+    }
+
+    [AllowAnonymous]
+    [HttpGet("api/comments/{id:guid}/replies")]
+    [EndpointSummary("Obtener respuestas de comentario")]
+    [EndpointDescription("Obtiene las respuestas paginadas de un comentario específico.")]
+    [ProducesResponseType<Result<PagedResult<CommentResponse>>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetCommentReplies(Guid id, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    {
+        var result = await _postService.GetCommentRepliesAsync(id, page, Math.Clamp(pageSize, 1, 100));
+
+        if (!result.IsSuccess)
+            return NotFound(new { isSuccess = false, message = result.Message });
 
         return Ok(new { isSuccess = true, data = result.Data });
     }
