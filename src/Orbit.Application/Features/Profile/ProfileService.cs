@@ -29,7 +29,7 @@ public class ProfileService : IProfileService
     public async Task<Result<ProfileResponse>> GetProfileByUsernameAsync(string username)
     {
         var slug = username.ToLowerInvariant();
-        var profile = await _profileRepo.FirstOrDefaultAsync(p => p.UsernameSlug == slug);
+        var profile = await _profileRepo.FirstOrDefaultAsync(p => p.UsernameSlug == slug, p => p.Prefix);
         if (profile is null)
             return Result<ProfileResponse>.Failure(ResponseMessages.ProfileNotFound);
 
@@ -39,7 +39,7 @@ public class ProfileService : IProfileService
 
     public async Task<Result<ProfileResponse>> UpdateProfileAsync(Guid authUserId, string? displayName, string? bio, bool? isPrivate)
     {
-        var profile = await _profileRepo.FirstOrDefaultAsync(p => p.AuthUserId == authUserId);
+        var profile = await _profileRepo.FirstOrDefaultAsync(p => p.AuthUserId == authUserId, p => p.Prefix);
         if (profile is null)
             return Result<ProfileResponse>.Failure(ResponseMessages.ProfileNotFound);
 
@@ -57,7 +57,7 @@ public class ProfileService : IProfileService
 
     public async Task<Result<ProfileResponse>> UpdateProfilePictureAsync(Guid authUserId, Stream fileStream, string fileName)
     {
-        var profile = await _profileRepo.FirstOrDefaultAsync(p => p.AuthUserId == authUserId);
+        var profile = await _profileRepo.FirstOrDefaultAsync(p => p.AuthUserId == authUserId, p => p.Prefix);
         if (profile is null)
             return Result<ProfileResponse>.Failure(ResponseMessages.ProfileNotFound);
 
@@ -85,7 +85,7 @@ public class ProfileService : IProfileService
 
     public async Task<Result<ProfileResponse>> RemoveProfilePictureAsync(Guid authUserId)
     {
-        var profile = await _profileRepo.FirstOrDefaultAsync(p => p.AuthUserId == authUserId);
+        var profile = await _profileRepo.FirstOrDefaultAsync(p => p.AuthUserId == authUserId, p => p.Prefix);
         if (profile is null)
             return Result<ProfileResponse>.Failure(ResponseMessages.ProfileNotFound);
 
@@ -106,7 +106,7 @@ public class ProfileService : IProfileService
 
     public async Task<Result<ProfileResponse>> UpdateBannerAsync(Guid authUserId, Stream fileStream, string fileName)
     {
-        var profile = await _profileRepo.FirstOrDefaultAsync(p => p.AuthUserId == authUserId);
+        var profile = await _profileRepo.FirstOrDefaultAsync(p => p.AuthUserId == authUserId, p => p.Prefix);
         if (profile is null)
             return Result<ProfileResponse>.Failure(ResponseMessages.ProfileNotFound);
 
@@ -134,7 +134,7 @@ public class ProfileService : IProfileService
 
     public async Task<Result<ProfileResponse>> RemoveBannerAsync(Guid authUserId)
     {
-        var profile = await _profileRepo.FirstOrDefaultAsync(p => p.AuthUserId == authUserId);
+        var profile = await _profileRepo.FirstOrDefaultAsync(p => p.AuthUserId == authUserId, p => p.Prefix);
         if (profile is null)
             return Result<ProfileResponse>.Failure(ResponseMessages.ProfileNotFound);
 

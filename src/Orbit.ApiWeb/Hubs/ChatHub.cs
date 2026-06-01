@@ -1,10 +1,10 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Orbit.Application.Constants;
 using Orbit.Domain.Entities;
 using Orbit.Infrastructure.DbContext;
+using Orbit.Shared.Constants;
 
 namespace Orbit.ApiWeb.Hubs;
 
@@ -71,10 +71,10 @@ public class ChatHub : Hub
             throw new HubException("You are not a participant of this conversation");
 
         if (string.IsNullOrWhiteSpace(content))
-            throw new HubException("Message content is required");
+            throw new HubException(ResponseMessages.MessageContentRequired);
 
-        if (content.Length > 2000)
-            throw new HubException("Message content must not exceed 2000 characters");
+        if (content.Length > DomainConstants.MessageContentMaxLength)
+            throw new HubException(ResponseMessages.MessageContentMaxLength);
 
         var message = new Message
         {

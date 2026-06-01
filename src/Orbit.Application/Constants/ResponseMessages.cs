@@ -50,4 +50,6 @@ public static class ResponseMessages
     public const string MessageDeleted = "Message deleted successfully";
     public const string NotConversationParticipant = "You are not a participant in this conversation";
     public const string NotMessageOwner = "You can only delete your own messages";
+    public const string MessageContentRequired = "Message content is required";
+    public const string MessageContentMaxLength = "Message content must not exceed 2000 characters";
 }

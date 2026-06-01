@@ -1,6 +1,7 @@
 using FluentValidation;
 using Orbit.ApiWeb.Constants;
 using Orbit.ApiWeb.DTOs;
+using Orbit.Shared.Constants;
 
 namespace Orbit.ApiWeb.Validators;
 
@@ -10,6 +11,6 @@ public class SendMessageValidator : AbstractValidator<SendMessageRequest>
     {
         RuleFor(x => x.Content)
             .NotEmpty().WithMessage(ValidationConstants.ContentRequired)
-            .MaximumLength(2000).WithMessage(ValidationConstants.ContentMaxLength);
+            .MaximumLength(DomainConstants.MessageContentMaxLength).WithMessage(ValidationConstants.ContentMaxLengthMessage);
     }
 }

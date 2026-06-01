@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,9 +9,8 @@ using Orbit.Application.Interfaces;
 
 namespace Orbit.ApiWeb.Controllers;
 
-[ApiController]
 [Authorize]
-public class ChatController : ControllerBase
+public class ChatController : BaseController
 {
     private readonly IChatService _chatService;
     private readonly IValidator<CreateChatRequest> _createChatValidator;
@@ -142,11 +140,4 @@ public class ChatController : ControllerBase
         return Ok(new { isSuccess = true, message = result.Message });
     }
 
-    private Guid? GetProfileId()
-    {
-        var profileIdClaim = User.FindFirst(ClaimConstants.ProfileId)?.Value;
-        if (profileIdClaim is null || !Guid.TryParse(profileIdClaim, out var profileId))
-            return null;
-        return profileId;
-    }
 }

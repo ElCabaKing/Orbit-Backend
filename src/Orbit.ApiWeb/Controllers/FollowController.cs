@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Orbit.Application.Constants;
@@ -6,8 +5,7 @@ using Orbit.Application.Interfaces;
 
 namespace Orbit.ApiWeb.Controllers;
 
-[ApiController]
-public class FollowController : ControllerBase
+public class FollowController : BaseController
 {
     private readonly IFollowService _followService;
 
@@ -74,11 +72,4 @@ public class FollowController : ControllerBase
         return Ok(new { isSuccess = true, data = result.Data });
     }
 
-    private Guid? GetProfileId()
-    {
-        var profileIdClaim = User.FindFirst(ClaimConstants.ProfileId)?.Value;
-        if (profileIdClaim is null || !Guid.TryParse(profileIdClaim, out var profileId))
-            return null;
-        return profileId;
-    }
 }

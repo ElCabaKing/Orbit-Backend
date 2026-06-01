@@ -3,6 +3,7 @@ using Orbit.Application.Constants;
 using Orbit.Application.DTOs;
 using Orbit.Application.Interfaces;
 using Orbit.Domain.Entities;
+using Orbit.Shared.Constants;
 
 namespace Orbit.Application.Features.Chats;
 
@@ -116,10 +117,10 @@ public class ChatService : IChatService
             return Result<MessageResponse>.Failure(ResponseMessages.NotConversationParticipant);
 
         if (string.IsNullOrWhiteSpace(content))
-            return Result<MessageResponse>.Failure("Message content is required");
+            return Result<MessageResponse>.Failure(ResponseMessages.MessageContentRequired);
 
-        if (content.Length > 2000)
-            return Result<MessageResponse>.Failure("Message content must not exceed 2000 characters");
+        if (content.Length > DomainConstants.MessageContentMaxLength)
+            return Result<MessageResponse>.Failure(ResponseMessages.MessageContentMaxLength);
 
         var message = new Message
         {

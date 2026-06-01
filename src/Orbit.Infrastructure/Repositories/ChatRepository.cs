@@ -38,12 +38,29 @@ public class ChatRepository : IChatRepository
     {
         var skip = (page - 1) * pageSize;
 
-        var rawList = await RawQuery(profileId).ToListAsync();
-
-        return rawList
-            .OrderByDescending(r => r.LastMsgCreatedAt ?? r.CreatedAt)
+        var pagedIds = await _dbContext.Conversations
+            .Where(c => c.Participants.Any(p => p.ProfileId == profileId))
+            .Select(c => new
+            {
+                c.Id,
+                LastMsgAt = c.Messages
+                    .OrderByDescending(m => m.CreatedAt)
+                    .Select(m => (DateTime?)m.CreatedAt)
+                    .FirstOrDefault() ?? c.CreatedAt
+            })
+            .OrderByDescending(x => x.LastMsgAt)
             .Skip(skip)
             .Take(pageSize)
+            .Select(x => x.Id)
+            .ToListAsync();
+
+        var rawList = await RawQuery(profileId)
+            .Where(r => pagedIds.Contains(r.Id))
+            .ToListAsync();
+
+        var lookup = rawList.ToDictionary(r => r.Id);
+        return pagedIds
+            .Select(id => lookup[id])
             .Select(MapToDetails)
             .ToList();
     }

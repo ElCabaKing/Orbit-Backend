@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,8 +7,7 @@ using Orbit.Application.Interfaces;
 
 namespace Orbit.ApiWeb.Controllers;
 
-[ApiController]
-public class ProfileController : ControllerBase
+public class ProfileController : BaseController
 {
     private readonly IProfileService _profileService;
     private readonly IValidator<UpdateProfileRequest> _updateProfileValidator;
@@ -144,20 +142,4 @@ public class ProfileController : ControllerBase
         return Ok(new { isSuccess = true, data = result.Data });
     }
 
-    private Guid? GetAuthUserId()
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                       ?? User.FindFirst(ClaimConstants.Sub)?.Value;
-        if (userIdClaim is null || !Guid.TryParse(userIdClaim, out var authUserId))
-            return null;
-        return authUserId;
-    }
-
-    private Guid? GetProfileId()
-    {
-        var profileIdClaim = User.FindFirst(ClaimConstants.ProfileId)?.Value;
-        if (profileIdClaim is null || !Guid.TryParse(profileIdClaim, out var profileId))
-            return null;
-        return profileId;
-    }
 }

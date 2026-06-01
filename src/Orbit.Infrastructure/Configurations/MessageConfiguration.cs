@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Orbit.Domain.Entities;
+using Orbit.Shared.Constants;
 
 namespace Orbit.Infrastructure.Configurations;
 
@@ -22,7 +23,7 @@ public class MessageConfiguration : IEntityTypeConfiguration<Message>
 
         builder.Property(m => m.Content)
             .HasColumnName("content")
-            .HasMaxLength(2000);
+            .HasMaxLength(DomainConstants.MessageContentMaxLength);
 
         builder.Property(m => m.IsSeen)
             .HasColumnName("is_seen")
