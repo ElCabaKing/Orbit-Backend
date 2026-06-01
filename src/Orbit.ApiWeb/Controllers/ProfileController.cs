@@ -1,15 +1,15 @@
-using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Orbit.ApiWeb.DTOs;
+using Orbit.Application.Common;
 using Orbit.Application.Constants;
+using Orbit.Application.DTOs;
 using Orbit.Application.Interfaces;
 
 namespace Orbit.ApiWeb.Controllers;
 
-[ApiController]
-public class ProfileController : ControllerBase
+public class ProfileController : BaseController
 {
     private readonly IProfileService _profileService;
     private readonly IValidator<UpdateProfileRequest> _updateProfileValidator;
@@ -24,6 +24,10 @@ public class ProfileController : ControllerBase
 
     [AllowAnonymous]
     [HttpGet("api/profiles/{username}")]
+    [EndpointSummary("Obtener perfil")]
+    [EndpointDescription("Obtiene el perfil público de un usuario por su nombre de usuario.")]
+    [ProducesResponseType<Result<ProfileResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetByUsername(string username)
     {
         var result = await _profileService.GetProfileByUsernameAsync(username);
@@ -36,6 +40,12 @@ public class ProfileController : ControllerBase
 
     [Authorize]
     [HttpPut("api/profile")]
+    [EndpointSummary("Actualizar perfil")]
+    [EndpointDescription("Actualiza el display name, biografía y privacidad del perfil autenticado.")]
+    [ProducesResponseType<Result<ProfileResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<Result>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update([FromBody] UpdateProfileRequest request)
     {
         var validationResult = await _updateProfileValidator.ValidateAsync(request);
@@ -59,6 +69,11 @@ public class ProfileController : ControllerBase
 
     [Authorize]
     [HttpPut("api/profile/avatar")]
+    [EndpointSummary("Subir avatar")]
+    [EndpointDescription("Sube o actualiza la foto de perfil del usuario autenticado.")]
+    [ProducesResponseType<Result<ProfileResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> UpdateAvatar(IFormFile file)
     {
         if (file is null || file.Length == 0)
@@ -79,6 +94,11 @@ public class ProfileController : ControllerBase
 
     [Authorize]
     [HttpDelete("api/profile/avatar")]
+    [EndpointSummary("Eliminar avatar")]
+    [EndpointDescription("Elimina la foto de perfil del usuario autenticado.")]
+    [ProducesResponseType<Result<ProfileResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<Result>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> RemoveAvatar()
     {
         var authUserId = GetAuthUserId();
@@ -95,6 +115,11 @@ public class ProfileController : ControllerBase
 
     [Authorize]
     [HttpPut("api/profile/banner")]
+    [EndpointSummary("Subir banner")]
+    [EndpointDescription("Sube o actualiza el banner del perfil del usuario autenticado.")]
+    [ProducesResponseType<Result<ProfileResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> UpdateBanner(IFormFile file)
     {
         if (file is null || file.Length == 0)
@@ -115,6 +140,11 @@ public class ProfileController : ControllerBase
 
     [Authorize]
     [HttpDelete("api/profile/banner")]
+    [EndpointSummary("Eliminar banner")]
+    [EndpointDescription("Elimina el banner del perfil del usuario autenticado.")]
+    [ProducesResponseType<Result<ProfileResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<Result>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> RemoveBanner()
     {
         var authUserId = GetAuthUserId();
@@ -129,12 +159,24 @@ public class ProfileController : ControllerBase
         return Ok(new { isSuccess = true, data = result.Data });
     }
 
-    private Guid? GetAuthUserId()
+    [Authorize]
+    [HttpGet("api/profiles/search")]
+    [EndpointSummary("Buscar perfiles")]
+    [EndpointDescription("Busca perfiles por nombre de usuario o display name.")]
+    [ProducesResponseType<Result<PagedResult<SearchProfileResponse>>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Search(
+        [FromQuery] string q, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                       ?? User.FindFirst(ClaimConstants.Sub)?.Value;
-        if (userIdClaim is null || !Guid.TryParse(userIdClaim, out var authUserId))
-            return null;
-        return authUserId;
+        if (string.IsNullOrWhiteSpace(q))
+            return BadRequest(new { isSuccess = false, message = "Search query is required" });
+
+        var currentProfileId = GetProfileId();
+        var result = await _profileService.SearchProfilesAsync(
+            q, currentProfileId, page, Math.Clamp(pageSize, 1, 50));
+
+        return Ok(new { isSuccess = true, data = result.Data });
     }
+
 }

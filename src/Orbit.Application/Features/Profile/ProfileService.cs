@@ -11,22 +11,25 @@ public class ProfileService : IProfileService
 {
     private readonly IGenericRepository<Orbit.Domain.Entities.Profile> _profileRepo;
     private readonly IGenericRepository<UserPrefix> _prefixRepo;
+    private readonly IGenericRepository<Follow> _followRepo;
     private readonly ICloudinaryService _cloudinaryService;
 
     public ProfileService(
         IGenericRepository<Orbit.Domain.Entities.Profile> profileRepo,
         IGenericRepository<UserPrefix> prefixRepo,
+        IGenericRepository<Follow> followRepo,
         ICloudinaryService cloudinaryService)
     {
         _profileRepo = profileRepo;
         _prefixRepo = prefixRepo;
+        _followRepo = followRepo;
         _cloudinaryService = cloudinaryService;
     }
 
     public async Task<Result<ProfileResponse>> GetProfileByUsernameAsync(string username)
     {
         var slug = username.ToLowerInvariant();
-        var profile = await _profileRepo.FirstOrDefaultAsync(p => p.UsernameSlug == slug);
+        var profile = await _profileRepo.FirstOrDefaultAsync(p => p.UsernameSlug == slug, p => p.Prefix);
         if (profile is null)
             return Result<ProfileResponse>.Failure(ResponseMessages.ProfileNotFound);
 
@@ -36,7 +39,7 @@ public class ProfileService : IProfileService
 
     public async Task<Result<ProfileResponse>> UpdateProfileAsync(Guid authUserId, string? displayName, string? bio, bool? isPrivate)
     {
-        var profile = await _profileRepo.FirstOrDefaultAsync(p => p.AuthUserId == authUserId);
+        var profile = await _profileRepo.FirstOrDefaultAsync(p => p.AuthUserId == authUserId, p => p.Prefix);
         if (profile is null)
             return Result<ProfileResponse>.Failure(ResponseMessages.ProfileNotFound);
 
@@ -54,7 +57,7 @@ public class ProfileService : IProfileService
 
     public async Task<Result<ProfileResponse>> UpdateProfilePictureAsync(Guid authUserId, Stream fileStream, string fileName)
     {
-        var profile = await _profileRepo.FirstOrDefaultAsync(p => p.AuthUserId == authUserId);
+        var profile = await _profileRepo.FirstOrDefaultAsync(p => p.AuthUserId == authUserId, p => p.Prefix);
         if (profile is null)
             return Result<ProfileResponse>.Failure(ResponseMessages.ProfileNotFound);
 
@@ -82,7 +85,7 @@ public class ProfileService : IProfileService
 
     public async Task<Result<ProfileResponse>> RemoveProfilePictureAsync(Guid authUserId)
     {
-        var profile = await _profileRepo.FirstOrDefaultAsync(p => p.AuthUserId == authUserId);
+        var profile = await _profileRepo.FirstOrDefaultAsync(p => p.AuthUserId == authUserId, p => p.Prefix);
         if (profile is null)
             return Result<ProfileResponse>.Failure(ResponseMessages.ProfileNotFound);
 
@@ -103,7 +106,7 @@ public class ProfileService : IProfileService
 
     public async Task<Result<ProfileResponse>> UpdateBannerAsync(Guid authUserId, Stream fileStream, string fileName)
     {
-        var profile = await _profileRepo.FirstOrDefaultAsync(p => p.AuthUserId == authUserId);
+        var profile = await _profileRepo.FirstOrDefaultAsync(p => p.AuthUserId == authUserId, p => p.Prefix);
         if (profile is null)
             return Result<ProfileResponse>.Failure(ResponseMessages.ProfileNotFound);
 
@@ -131,7 +134,7 @@ public class ProfileService : IProfileService
 
     public async Task<Result<ProfileResponse>> RemoveBannerAsync(Guid authUserId)
     {
-        var profile = await _profileRepo.FirstOrDefaultAsync(p => p.AuthUserId == authUserId);
+        var profile = await _profileRepo.FirstOrDefaultAsync(p => p.AuthUserId == authUserId, p => p.Prefix);
         if (profile is null)
             return Result<ProfileResponse>.Failure(ResponseMessages.ProfileNotFound);
 
@@ -148,6 +151,47 @@ public class ProfileService : IProfileService
 
         var prefixResponse = await GetPrefixAsync(profile.PrefixId);
         return Result<ProfileResponse>.Success(BuildResponse(profile, prefixResponse));
+    }
+
+    public async Task<Result<PagedResult<SearchProfileResponse>>> SearchProfilesAsync(
+        string query, Guid? currentProfileId, int page, int pageSize)
+    {
+        var normalized = query.ToLowerInvariant();
+        var skip = (page - 1) * pageSize;
+
+        var profiles = await _profileRepo.GetPagedAsync(
+            p => p.UsernameSlug.Contains(normalized) || p.DisplayName.ToLower().Contains(normalized),
+            p => p.FollowersCount,
+            skip,
+            pageSize);
+
+        var totalCount = await _profileRepo.CountAsync(
+            p => p.UsernameSlug.Contains(normalized) || p.DisplayName.ToLower().Contains(normalized));
+
+        HashSet<Guid> followedIds = [];
+        if (currentProfileId.HasValue)
+        {
+            var profileIds = profiles.Select(p => p.Id).ToList();
+            var existingFollows = await _followRepo.GetListAsync(f =>
+                f.FollowerId == currentProfileId.Value && profileIds.Contains(f.FollowingId));
+            followedIds = existingFollows.Select(f => f.FollowingId).ToHashSet();
+        }
+
+        var items = profiles.Select(p => new SearchProfileResponse(
+            p.Id,
+            p.Username,
+            p.DisplayName,
+            p.ProfilePictureUrl,
+            currentProfileId.HasValue && followedIds.Contains(p.Id)
+        )).ToList();
+
+        return Result<PagedResult<SearchProfileResponse>>.Success(new PagedResult<SearchProfileResponse>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize,
+        });
     }
 
     private async Task<UserPrefixResponse?> GetPrefixAsync(Guid? prefixId)

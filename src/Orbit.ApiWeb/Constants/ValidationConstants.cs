@@ -45,4 +45,7 @@ public static class ValidationConstants
     public const string MediaInvalidExtension = "Each file must be jpg, jpeg, png, webp, gif, mp4, mov, avi or webm";
     public const string MediaMaxSize = "Each file must not exceed 10MB";
     public const string MediaMaxCount = "Maximum 10 files allowed per post";
+
+    // Chat - Message
+    public const string ContentMaxLengthMessage = "Content must not exceed 2000 characters";
 }

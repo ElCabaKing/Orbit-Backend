@@ -1,13 +1,13 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Orbit.Application.Common;
 using Orbit.Application.Constants;
+using Orbit.Application.DTOs;
 using Orbit.Application.Interfaces;
 
 namespace Orbit.ApiWeb.Controllers;
 
-[ApiController]
-public class FollowController : ControllerBase
+public class FollowController : BaseController
 {
     private readonly IFollowService _followService;
 
@@ -18,6 +18,11 @@ public class FollowController : ControllerBase
 
     [Authorize]
     [HttpPost("api/profiles/{username}/follow")]
+    [EndpointSummary("Seguir usuario")]
+    [EndpointDescription("Sigue a un usuario por su nombre de usuario.")]
+    [ProducesResponseType<Result>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Follow(string username)
     {
         var profileId = GetProfileId();
@@ -34,6 +39,11 @@ public class FollowController : ControllerBase
 
     [Authorize]
     [HttpDelete("api/profiles/{username}/follow")]
+    [EndpointSummary("Dejar de seguir")]
+    [EndpointDescription("Deja de seguir a un usuario por su nombre de usuario.")]
+    [ProducesResponseType<Result>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Unfollow(string username)
     {
         var profileId = GetProfileId();
@@ -50,6 +60,10 @@ public class FollowController : ControllerBase
 
     [AllowAnonymous]
     [HttpGet("api/profiles/{username}/followers")]
+    [EndpointSummary("Obtener seguidores")]
+    [EndpointDescription("Obtiene la lista de seguidores de un perfil.")]
+    [ProducesResponseType<Result<PagedResult<PostAuthorResponse>>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetFollowers(string username, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         var currentProfileId = GetProfileId();
@@ -63,6 +77,10 @@ public class FollowController : ControllerBase
 
     [AllowAnonymous]
     [HttpGet("api/profiles/{username}/following")]
+    [EndpointSummary("Obtener seguidos")]
+    [EndpointDescription("Obtiene la lista de usuarios que sigue un perfil.")]
+    [ProducesResponseType<Result<PagedResult<PostAuthorResponse>>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetFollowing(string username, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         var currentProfileId = GetProfileId();
@@ -74,11 +92,4 @@ public class FollowController : ControllerBase
         return Ok(new { isSuccess = true, data = result.Data });
     }
 
-    private Guid? GetProfileId()
-    {
-        var profileIdClaim = User.FindFirst(ClaimConstants.ProfileId)?.Value;
-        if (profileIdClaim is null || !Guid.TryParse(profileIdClaim, out var profileId))
-            return null;
-        return profileId;
-    }
 }

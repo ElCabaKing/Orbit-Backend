@@ -22,6 +22,18 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
         return await DbSet.FindAsync(id);
     }
 
+    public virtual async Task<T?> GetByIdAsync(Guid id, params Expression<Func<T, object>>[] includes)
+    {
+        var query = DbSet.AsQueryable();
+
+        if (typeof(ISoftDeletable).IsAssignableFrom(typeof(T)))
+            query = query.Where(e => ((ISoftDeletable)e).IsActive);
+
+        query = includes.Aggregate(query, (current, include) => current.Include(include));
+
+        return await query.FirstOrDefaultAsync(e => e.Id == id);
+    }
+
     public virtual async Task<List<T>> GetAllAsync()
     {
         var query = DbSet.AsQueryable();
@@ -42,6 +54,18 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
         {
             query = query.Where(e => ((ISoftDeletable)e).IsActive);
         }
+
+        return await query.FirstOrDefaultAsync(predicate);
+    }
+
+    public virtual async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes)
+    {
+        var query = DbSet.AsQueryable();
+
+        if (typeof(ISoftDeletable).IsAssignableFrom(typeof(T)))
+            query = query.Where(e => ((ISoftDeletable)e).IsActive);
+
+        query = includes.Aggregate(query, (current, include) => current.Include(include));
 
         return await query.FirstOrDefaultAsync(predicate);
     }

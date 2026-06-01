@@ -4,12 +4,14 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Orbit.ApiWeb.Validators;
 using Orbit.Application.Features.Auth;
+using Orbit.Application.Features.Chats;
 using Orbit.Application.Features.Follows;
 using Orbit.Application.Features.Posts;
 using Orbit.Application.Features.Profiles;
 using Orbit.Application.Interfaces;
 using Orbit.Infrastructure.Extensions;
 using Orbit.Shared.Constants;
+using Scalar.AspNetCore;
 
 var envPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", ".env");
 if (File.Exists(envPath))
@@ -25,6 +27,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<IFollowService, FollowService>();
+builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterValidator>();
 
 var frontendUrl = Environment.GetEnvironmentVariable(EnvironmentConstants.FrontendUrl);
@@ -54,6 +57,23 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(jwtSecret)),
         };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    path.StartsWithSegments("/hubs/chat"))
+                {
+                    context.Token = accessToken;
+                }
+
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddCors(options =>
@@ -65,7 +85,13 @@ builder.Services.AddCors(options =>
               .AllowCredentials());
 });
 builder.Services.AddAuthorization();
+builder.Services.AddOpenApi();
 builder.Services.AddControllers();
+builder.Services.AddSignalR(options =>
+{
+    options.MaximumReceiveMessageSize = 128 * 1024;
+    options.EnableDetailedErrors = builder.Environment.IsDevelopment();
+});
 
 var app = builder.Build();
 
@@ -73,5 +99,14 @@ app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<Orbit.ApiWeb.Hubs.ChatHub>("/hubs/chat");
+
+app.MapOpenApi();
+app.MapScalarApiReference(options =>
+{
+    options
+        .WithTitle("Orbit API")
+        .WithTheme(ScalarTheme.Purple);
+});
 
 app.Run();

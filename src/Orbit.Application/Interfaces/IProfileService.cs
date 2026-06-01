@@ -11,4 +11,5 @@ public interface IProfileService
     Task<Result<ProfileResponse>> RemoveProfilePictureAsync(Guid authUserId);
     Task<Result<ProfileResponse>> UpdateBannerAsync(Guid authUserId, Stream fileStream, string fileName);
     Task<Result<ProfileResponse>> RemoveBannerAsync(Guid authUserId);
+    Task<Result<PagedResult<SearchProfileResponse>>> SearchProfilesAsync(string query, Guid? currentProfileId, int page, int pageSize);
 }

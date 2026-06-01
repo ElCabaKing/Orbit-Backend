@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Orbit.Infrastructure.DbContext;
 
@@ -11,9 +12,11 @@ using Orbit.Infrastructure.DbContext;
 namespace Orbit.Infrastructure.Migrations
 {
     [DbContext(typeof(OrbitDbContext))]
-    partial class OrbitDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260531203419_AddEmailTemplates")]
+    partial class AddEmailTemplates
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -122,54 +125,6 @@ namespace Orbit.Infrastructure.Migrations
                     b.ToTable("comments", (string)null);
                 });
 
-            modelBuilder.Entity("Orbit.Domain.Entities.Conversation", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("ConversationType")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
-                        .HasDefaultValue("dm")
-                        .HasColumnName("conversation_type");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("SYSUTCDATETIME()");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("conversations", (string)null);
-                });
-
-            modelBuilder.Entity("Orbit.Domain.Entities.ConversationParticipant", b =>
-                {
-                    b.Property<Guid>("ConversationId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("conversation_id");
-
-                    b.Property<Guid>("ProfileId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("profile_id");
-
-                    b.Property<DateTime>("JoinedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasColumnName("joined_at")
-                        .HasDefaultValueSql("SYSUTCDATETIME()");
-
-                    b.HasKey("ConversationId", "ProfileId");
-
-                    b.HasIndex("ProfileId");
-
-                    b.ToTable("conversation_participants", (string)null);
-                });
-
             modelBuilder.Entity("Orbit.Domain.Entities.EmailTemplate", b =>
                 {
                     b.Property<Guid>("Id")
@@ -253,127 +208,6 @@ namespace Orbit.Infrastructure.Migrations
                         .HasDatabaseName("ux_follows_follower_following");
 
                     b.ToTable("follows", (string)null);
-                });
-
-            modelBuilder.Entity("Orbit.Domain.Entities.Message", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Content")
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)")
-                        .HasColumnName("content");
-
-                    b.Property<Guid>("ConversationId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("conversation_id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("SYSUTCDATETIME()");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("deleted_at");
-
-                    b.Property<DateTime?>("EditedAt")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("edited_at");
-
-                    b.Property<bool>("IsEdited")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_edited");
-
-                    b.Property<bool>("IsSeen")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_seen");
-
-                    b.Property<Guid>("SenderProfileId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("sender_profile_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ConversationId")
-                        .HasDatabaseName("ix_messages_conversation_id");
-
-                    b.HasIndex("SenderProfileId");
-
-                    b.HasIndex("ConversationId", "CreatedAt")
-                        .IsDescending(false, true)
-                        .HasDatabaseName("ix_messages_conversation_created");
-
-                    b.ToTable("messages", (string)null);
-                });
-
-            modelBuilder.Entity("Orbit.Domain.Entities.MessageMedia", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("SYSUTCDATETIME()");
-
-                    b.Property<double?>("DurationSeconds")
-                        .HasColumnType("float")
-                        .HasColumnName("duration_seconds");
-
-                    b.Property<int?>("Height")
-                        .HasColumnType("int")
-                        .HasColumnName("height");
-
-                    b.Property<string>("MediaType")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
-                        .HasColumnName("media_type");
-
-                    b.Property<Guid>("MessageId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("message_id");
-
-                    b.Property<string>("MimeType")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("mime_type");
-
-                    b.Property<string>("PublicId")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("public_id");
-
-                    b.Property<long?>("SizeBytes")
-                        .HasColumnType("bigint")
-                        .HasColumnName("size_bytes");
-
-                    b.Property<string>("Url")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)")
-                        .HasColumnName("url");
-
-                    b.Property<int?>("Width")
-                        .HasColumnType("int")
-                        .HasColumnName("width");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MessageId");
-
-                    b.ToTable("message_media", (string)null);
                 });
 
             modelBuilder.Entity("Orbit.Domain.Entities.Post", b =>
@@ -808,25 +642,6 @@ namespace Orbit.Infrastructure.Migrations
                     b.Navigation("Profile");
                 });
 
-            modelBuilder.Entity("Orbit.Domain.Entities.ConversationParticipant", b =>
-                {
-                    b.HasOne("Orbit.Domain.Entities.Conversation", "Conversation")
-                        .WithMany("Participants")
-                        .HasForeignKey("ConversationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Orbit.Domain.Entities.Profile", "Profile")
-                        .WithMany()
-                        .HasForeignKey("ProfileId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Conversation");
-
-                    b.Navigation("Profile");
-                });
-
             modelBuilder.Entity("Orbit.Domain.Entities.Follow", b =>
                 {
                     b.HasOne("Orbit.Domain.Entities.Profile", "Follower")
@@ -844,36 +659,6 @@ namespace Orbit.Infrastructure.Migrations
                     b.Navigation("Follower");
 
                     b.Navigation("Following");
-                });
-
-            modelBuilder.Entity("Orbit.Domain.Entities.Message", b =>
-                {
-                    b.HasOne("Orbit.Domain.Entities.Conversation", "Conversation")
-                        .WithMany("Messages")
-                        .HasForeignKey("ConversationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Orbit.Domain.Entities.Profile", "SenderProfile")
-                        .WithMany()
-                        .HasForeignKey("SenderProfileId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Conversation");
-
-                    b.Navigation("SenderProfile");
-                });
-
-            modelBuilder.Entity("Orbit.Domain.Entities.MessageMedia", b =>
-                {
-                    b.HasOne("Orbit.Domain.Entities.Message", "Message")
-                        .WithMany("MessageMedia")
-                        .HasForeignKey("MessageId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Message");
                 });
 
             modelBuilder.Entity("Orbit.Domain.Entities.Post", b =>
@@ -971,18 +756,6 @@ namespace Orbit.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("UserSessions");
-                });
-
-            modelBuilder.Entity("Orbit.Domain.Entities.Conversation", b =>
-                {
-                    b.Navigation("Messages");
-
-                    b.Navigation("Participants");
-                });
-
-            modelBuilder.Entity("Orbit.Domain.Entities.Message", b =>
-                {
-                    b.Navigation("MessageMedia");
                 });
 
             modelBuilder.Entity("Orbit.Domain.Entities.Post", b =>

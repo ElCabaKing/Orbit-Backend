@@ -18,6 +18,6 @@ public interface IAuthService
     Task<Result<AuthResponse>> RefreshTokenAsync(string accessToken, string refreshToken);
     Task<Result> LogoutAsync(string refreshToken);
     Task<Result<ProfileResponse>> GetCurrentUserAsync(Guid authUserId);
-    Task<Result> ForgotPasswordAsync(string email);
-    Task<Result> ResetPasswordAsync(string email, string token, string newPassword);
+    Task<Result> ForgotPasswordAsync(string emailOrUsername);
+    Task<Result> ResetPasswordAsync(string username, string token, string newPassword);
 }

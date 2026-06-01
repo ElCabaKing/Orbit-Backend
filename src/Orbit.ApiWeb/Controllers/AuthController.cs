@@ -3,7 +3,9 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Orbit.ApiWeb.DTOs;
+using Orbit.Application.Common;
 using Orbit.Application.Constants;
+using Orbit.Application.DTOs;
 using Orbit.Application.Interfaces;
 
 namespace Orbit.ApiWeb.Controllers;
@@ -33,6 +35,11 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
+    [EndpointSummary("Registro de usuario")]
+    [EndpointDescription("Crea una nueva cuenta con email, username, display name y contraseña. Opcionalmente se puede subir una foto de perfil y biografía.")]
+    [ProducesResponseType<Result<RegisterResponse>>(StatusCodes.Status201Created)]
+    [ProducesResponseType<Result>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<Result>(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Register([FromForm] RegisterRequest request)
     {
         var validationResult = await _registerValidator.ValidateAsync(request);
@@ -72,6 +79,11 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
+    [EndpointSummary("Inicio de sesión")]
+    [EndpointDescription("Autentica al usuario con email/username y contraseña. Devuelve tokens de acceso y refresco.")]
+    [ProducesResponseType<Result<AuthResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         var validationResult = await _loginValidator.ValidateAsync(request);
@@ -92,6 +104,9 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("logout")]
+    [EndpointSummary("Cerrar sesión")]
+    [EndpointDescription("Invalida el refresh token y cierra la sesión del usuario.")]
+    [ProducesResponseType<Result>(StatusCodes.Status200OK)]
     public async Task<IActionResult> Logout([FromBody] LogoutRequest request)
     {
         var result = await _authService.LogoutAsync(request.RefreshToken);
@@ -100,6 +115,11 @@ public class AuthController : ControllerBase
 
     [Authorize]
     [HttpGet("me")]
+    [EndpointSummary("Usuario actual")]
+    [EndpointDescription("Obtiene la información del usuario autenticado mediante el token JWT.")]
+    [ProducesResponseType<Result<ProfileResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<Result>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Me()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
@@ -116,6 +136,10 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("refresh")]
+    [EndpointSummary("Refrescar token")]
+    [EndpointDescription("Obtiene un nuevo access token usando el refresh token.")]
+    [ProducesResponseType<Result<AuthResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest request)
     {
         var result = await _authService.RefreshTokenAsync(request.AccessToken, request.RefreshToken);
@@ -133,6 +157,9 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("forgot-password")]
+    [EndpointSummary("Olvidé mi contraseña")]
+    [EndpointDescription("Envía un correo con el token para restablecer la contraseña.")]
+    [ProducesResponseType<Result>(StatusCodes.Status200OK)]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
     {
         var validationResult = await _forgotPasswordValidator.ValidateAsync(request);
@@ -142,11 +169,15 @@ public class AuthController : ControllerBase
             return BadRequest(new { isSuccess = false, message = ResponseMessages.ValidationFailed, errors });
         }
 
-        var result = await _authService.ForgotPasswordAsync(request.Email);
+        var result = await _authService.ForgotPasswordAsync(request.EmailOrUsername);
         return Ok(new { isSuccess = true, message = result.Message });
     }
 
     [HttpPost("reset-password")]
+    [EndpointSummary("Restablecer contraseña")]
+    [EndpointDescription("Restablece la contraseña usando el token recibido por correo.")]
+    [ProducesResponseType<Result>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
     {
         var validationResult = await _resetPasswordValidator.ValidateAsync(request);
@@ -156,7 +187,7 @@ public class AuthController : ControllerBase
             return BadRequest(new { isSuccess = false, message = ResponseMessages.ValidationFailed, errors });
         }
 
-        var result = await _authService.ResetPasswordAsync(request.Email, request.Token, request.NewPassword);
+        var result = await _authService.ResetPasswordAsync(request.Username, request.Token, request.NewPassword);
 
         if (!result.IsSuccess)
             return BadRequest(new { isSuccess = false, message = result.Message });

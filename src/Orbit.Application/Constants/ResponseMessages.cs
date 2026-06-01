@@ -23,6 +23,8 @@ public static class ResponseMessages
     public const string CheckYourInbox = "If registered, check your inbox";
     public const string PasswordResetSuccessful = "Password reset successful";
 
+    public const string WelcomeEmailSent = "Welcome email sent";
+
     public const string ValidationFailed = "Validation failed";
     public const string InvalidToken = "Invalid token";
     public const string FileRequired = "File is required";
@@ -39,4 +41,15 @@ public static class ResponseMessages
     public const string NotFollowing = "You are not following this user";
     public const string FollowSuccessful = "Follow successful";
     public const string UnfollowSuccessful = "Unfollow successful";
+
+    // Chat
+    public const string MutualFollowRequired = "Both users must follow each other to start a chat";
+    public const string CannotChatYourself = "Cannot start a chat with yourself";
+    public const string ConversationNotFound = "Conversation not found";
+    public const string MessageNotFound = "Message not found";
+    public const string MessageDeleted = "Message deleted successfully";
+    public const string NotConversationParticipant = "You are not a participant in this conversation";
+    public const string NotMessageOwner = "You can only delete your own messages";
+    public const string MessageContentRequired = "Message content is required";
+    public const string MessageContentMaxLength = "Message content must not exceed 2000 characters";
 }
