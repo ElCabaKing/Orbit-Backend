@@ -83,16 +83,32 @@ public class PostController : ControllerBase
         return Ok(new { isSuccess = true, data = result.Data });
     }
 
-    [Authorize]
-    [HttpGet("api/posts/timeline")]
-    [EndpointSummary("Timeline")]
-    [EndpointDescription("Obtiene el timeline con publicaciones de los usuarios seguidos.")]
+    [AllowAnonymous]
+    [HttpGet("api/posts/general")]
+    [EndpointSummary("Feed general")]
+    [EndpointDescription("Obtiene todas las publicaciones generales (no de comunidades) de forma paginada.")]
     [ProducesResponseType<Result<PagedResult<PostResponse>>>(StatusCodes.Status200OK)]
-    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> GetTimeline([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    public async Task<IActionResult> GetGeneralPosts([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         var currentProfileId = GetProfileId();
-        var result = await _postService.GetTimelineAsync(currentProfileId, page, Math.Clamp(pageSize, 1, 100));
+        var result = await _postService.GetGeneralPostsAsync(currentProfileId, page, Math.Clamp(pageSize, 1, 100));
+
+        return Ok(new { isSuccess = true, data = result.Data });
+    }
+
+    [Authorize]
+    [HttpGet("api/posts/following")]
+    [EndpointSummary("Feed de seguidos")]
+    [EndpointDescription("Obtiene las publicaciones de los usuarios a los que sigues.")]
+    [ProducesResponseType<Result<PagedResult<PostResponse>>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetFollowingPosts([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    {
+        var profileId = GetProfileId();
+        if (profileId is null)
+            return Unauthorized(new { isSuccess = false, message = ResponseMessages.InvalidToken });
+
+        var result = await _postService.GetFollowingPostsAsync(profileId.Value, page, Math.Clamp(pageSize, 1, 100));
 
         return Ok(new { isSuccess = true, data = result.Data });
     }

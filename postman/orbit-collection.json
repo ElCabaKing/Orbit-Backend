@@ -989,7 +989,41 @@
           }
         },
         {
-          "name": "Get Timeline",
+          "name": "Get General Posts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response has paginated posts\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.eql(true);",
+                  "    pm.expect(json.data).to.have.property('items');",
+                  "    pm.expect(json.data).to.have.property('totalCount');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/general?page=1&pageSize=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "posts", "general"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Following Posts",
           "event": [
             {
               "listen": "test",
@@ -1014,9 +1048,9 @@
               { "key": "Authorization", "value": "Bearer {{accessToken}}" }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/posts/timeline?page=1&pageSize=20",
+              "raw": "{{baseUrl}}/api/posts/following?page=1&pageSize=20",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "posts", "timeline"],
+              "path": ["api", "posts", "following"],
               "query": [
                 { "key": "page", "value": "1" },
                 { "key": "pageSize", "value": "20" }
