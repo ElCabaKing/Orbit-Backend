@@ -148,15 +148,19 @@ public class PostService : IPostService
 
         var author = BuildAuthorResponse(post.Profile, isFollowing);
 
-        PostAuthorResponse? originalAuthor = null;
+        PostResponse? originalPostResponse = null;
         if (post.OriginalPostId.HasValue)
         {
             var originalPost = await _postRepo.FirstOrDefaultAsync(p => p.Id == post.OriginalPostId.Value, p => p.Profile);
             if (originalPost?.Profile is not null)
-                originalAuthor = BuildAuthorResponse(originalPost.Profile);
+            {
+                var originalMedia = await _mediaRepo.GetListAsync(m => m.PostId == originalPost.Id);
+                var originalAuthor = BuildAuthorResponse(originalPost.Profile);
+                originalPostResponse = BuildPostResponse(originalPost, originalAuthor, false, false, originalMedia);
+            }
         }
 
-        return Result<PostResponse>.Success(BuildPostResponse(post, author, isLiked, isSaved, media, originalAuthor));
+        return Result<PostResponse>.Success(BuildPostResponse(post, author, isLiked, isSaved, media, originalPostResponse));
     }
 
     public async Task<Result<PagedResult<PostResponse>>> GetGeneralPostsAsync(Guid? currentProfileId, int page, int pageSize)
@@ -551,9 +555,12 @@ public class PostService : IPostService
         _profileRepo.Update(profile);
         await _profileRepo.SaveChangesAsync();
 
-        var author = BuildAuthorResponse(profile);
+        var originalMedia = await _mediaRepo.GetListAsync(m => m.PostId == originalPost.Id);
         var originalAuthor = BuildAuthorResponse(originalPost.Profile);
-        return Result<PostResponse>.Success(BuildPostResponse(repost, author, false, false, [], originalAuthor));
+        var originalPostResponse = BuildPostResponse(originalPost, originalAuthor, false, false, originalMedia);
+
+        var author = BuildAuthorResponse(profile);
+        return Result<PostResponse>.Success(BuildPostResponse(repost, author, false, false, [], originalPostResponse));
     }
 
     public async Task<Result<PostResponse>> ThreadPostAsync(Guid authUserId, Guid postId, string content)
@@ -585,9 +592,12 @@ public class PostService : IPostService
         _profileRepo.Update(profile);
         await _profileRepo.SaveChangesAsync();
 
+        var parentMedia = await _mediaRepo.GetListAsync(m => m.PostId == parentPost.Id);
+        var parentAuthor = BuildAuthorResponse(parentPost.Profile);
+        var parentPostResponse = BuildPostResponse(parentPost, parentAuthor, false, false, parentMedia);
+
         var author = BuildAuthorResponse(profile);
-        var originalAuthor = BuildAuthorResponse(parentPost.Profile);
-        return Result<PostResponse>.Success(BuildPostResponse(thread, author, false, false, [], originalAuthor));
+        return Result<PostResponse>.Success(BuildPostResponse(thread, author, false, false, [], parentPostResponse));
     }
 
     public async Task<Result<CommentResponse>> CreateCommentAsync(Guid profileId, Guid postId, string content, Guid? parentCommentId = null)
@@ -872,7 +882,7 @@ public class PostService : IPostService
             mediaMap = allMedia.GroupBy(m => m.PostId).ToDictionary(g => g.Key, g => g.ToList());
         }
 
-        Dictionary<Guid, PostAuthorResponse> originalAuthorMap = [];
+        Dictionary<Guid, PostResponse> originalPostMap = [];
         var originalPostIds = posts
             .Where(p => p.OriginalPostId.HasValue)
             .Select(p => p.OriginalPostId!.Value)
@@ -885,10 +895,22 @@ public class PostService : IPostService
             var originalProfileIds = originalPosts.Select(p => p.ProfileId).Distinct().ToList();
             var originalProfileMap = await BatchLoadProfilesAsync(originalProfileIds);
 
+            Dictionary<Guid, List<PostMedia>> originalMediaMap = [];
+            if (originalPosts.Count > 0)
+            {
+                var origPostIds = originalPosts.Select(p => p.Id).ToList();
+                var allOrigMedia = await _mediaRepo.GetListAsync(m => origPostIds.Contains(m.PostId));
+                originalMediaMap = allOrigMedia.GroupBy(m => m.PostId).ToDictionary(g => g.Key, g => g.ToList());
+            }
+
             foreach (var op in originalPosts)
             {
                 if (originalProfileMap.TryGetValue(op.ProfileId, out var opProfile))
-                    originalAuthorMap[op.Id] = BuildAuthorResponse(opProfile);
+                {
+                    var opAuthor = BuildAuthorResponse(opProfile);
+                    var opMedia = originalMediaMap.GetValueOrDefault(op.Id) ?? [];
+                    originalPostMap[op.Id] = BuildPostResponse(op, opAuthor, false, false, opMedia);
+                }
             }
         }
 
@@ -900,10 +922,10 @@ public class PostService : IPostService
                 ? BuildAuthorResponse(prof, isFollowing)
                 : new PostAuthorResponse(p.ProfileId, "Unknown", "Unknown", null, false);
             var media = mediaMap.GetValueOrDefault(p.Id) ?? [];
-            var originalAuthor = p.OriginalPostId.HasValue
-                ? originalAuthorMap.GetValueOrDefault(p.OriginalPostId.Value)
+            var originalPost = p.OriginalPostId.HasValue
+                ? originalPostMap.GetValueOrDefault(p.OriginalPostId.Value)
                 : null;
-            return BuildPostResponse(p, author, likedPostIds.Contains(p.Id), savedPostIds.Contains(p.Id), media, originalAuthor);
+            return BuildPostResponse(p, author, likedPostIds.Contains(p.Id), savedPostIds.Contains(p.Id), media, originalPost);
         }).ToList();
 
         return Result<PagedResult<PostResponse>>.Success(new PagedResult<PostResponse>
@@ -933,7 +955,7 @@ public class PostService : IPostService
         );
     }
 
-    private static PostResponse BuildPostResponse(Orbit.Domain.Entities.Post post, PostAuthorResponse author, bool isLiked, bool isSaved, List<PostMedia> media, PostAuthorResponse? originalAuthor = null)
+    private static PostResponse BuildPostResponse(Orbit.Domain.Entities.Post post, PostAuthorResponse author, bool isLiked, bool isSaved, List<PostMedia> media, PostResponse? originalPost = null)
     {
         return new PostResponse(
             post.Id,
@@ -959,7 +981,7 @@ public class PostService : IPostService
             post.IsRepost,
             post.IsThread,
             post.OriginalPostId,
-            originalAuthor
+            originalPost
         );
     }
 

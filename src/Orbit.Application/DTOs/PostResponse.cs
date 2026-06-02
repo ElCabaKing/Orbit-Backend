@@ -15,5 +15,5 @@ public record PostResponse(
     bool IsRepost,
     bool IsThread,
     Guid? OriginalPostId,
-    PostAuthorResponse? OriginalAuthor
+    PostResponse? OriginalPost
 );
