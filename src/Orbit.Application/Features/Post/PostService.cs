@@ -2,6 +2,7 @@ using Orbit.Application.Common;
 using Orbit.Application.Constants;
 using Orbit.Application.DTOs;
 using Orbit.Application.Enums;
+using Orbit.Application.Features.Notifications;
 using Orbit.Application.Interfaces;
 using Orbit.Domain.Entities;
 
@@ -21,6 +22,7 @@ public class PostService : IPostService
     private readonly IGenericRepository<SavedPost> _savedPostRepo;
     private readonly IGenericRepository<UserBan> _userBanRepo;
     private readonly ICloudinaryService _cloudinaryService;
+    private readonly NotificationChannel _notificationChannel;
 
     public PostService(
         IGenericRepository<Orbit.Domain.Entities.Post> postRepo,
@@ -34,7 +36,8 @@ public class PostService : IPostService
         IGenericRepository<UserRole> userRoleRepo,
         IGenericRepository<SavedPost> savedPostRepo,
         IGenericRepository<UserBan> userBanRepo,
-        ICloudinaryService cloudinaryService)
+        ICloudinaryService cloudinaryService,
+        NotificationChannel notificationChannel)
     {
         _postRepo = postRepo;
         _profileRepo = profileRepo;
@@ -48,6 +51,7 @@ public class PostService : IPostService
         _savedPostRepo = savedPostRepo;
         _userBanRepo = userBanRepo;
         _cloudinaryService = cloudinaryService;
+        _notificationChannel = notificationChannel;
     }
 
     public async Task<Result<PostResponse>> CreatePostAsync(Guid authUserId, string? content, List<MediaUploadData>? mediaFiles)
@@ -411,6 +415,12 @@ public class PostService : IPostService
         _postRepo.Update(post);
         await _postRepo.SaveChangesAsync();
 
+        if (post.ProfileId != profileId)
+        {
+            await _notificationChannel.Channel.Writer.WriteAsync(new NotificationEvent(
+                post.ProfileId, "like", profileId, postId, null, post.Content, null));
+        }
+
         return Result<LikeResponse>.Success(new LikeResponse(postId, true, post.LikeCount));
     }
 
@@ -559,6 +569,9 @@ public class PostService : IPostService
         var originalAuthor = BuildAuthorResponse(originalPost.Profile);
         var originalPostResponse = BuildPostResponse(originalPost, originalAuthor, false, false, originalMedia);
 
+        await _notificationChannel.Channel.Writer.WriteAsync(new NotificationEvent(
+            originalPost.ProfileId, "repost", profile.Id, originalPost.Id, null, originalPost.Content, null));
+
         var author = BuildAuthorResponse(profile);
         return Result<PostResponse>.Success(BuildPostResponse(repost, author, false, false, [], originalPostResponse));
     }
@@ -595,6 +608,12 @@ public class PostService : IPostService
         var parentMedia = await _mediaRepo.GetListAsync(m => m.PostId == parentPost.Id);
         var parentAuthor = BuildAuthorResponse(parentPost.Profile);
         var parentPostResponse = BuildPostResponse(parentPost, parentAuthor, false, false, parentMedia);
+
+        if (parentPost.ProfileId != profile.Id)
+        {
+            await _notificationChannel.Channel.Writer.WriteAsync(new NotificationEvent(
+                parentPost.ProfileId, "thread", profile.Id, parentPost.Id, null, parentPost.Content, null));
+        }
 
         var author = BuildAuthorResponse(profile);
         return Result<PostResponse>.Success(BuildPostResponse(thread, author, false, false, [], parentPostResponse));
@@ -652,6 +671,13 @@ public class PostService : IPostService
         }
 
         var profile = await _profileRepo.GetByIdAsync(profileId);
+
+        if (post.ProfileId != profileId)
+        {
+            await _notificationChannel.Channel.Writer.WriteAsync(new NotificationEvent(
+                post.ProfileId, "comment", profileId, postId, comment.Id, post.Content, comment.Content));
+        }
+
         var author = profile is not null ? BuildAuthorResponse(profile) : new PostAuthorResponse(profileId, "Unknown", "Unknown", null, false);
 
         return Result<CommentResponse>.Success(new CommentResponse(comment.Id, author, comment.Content, comment.ParentCommentId, comment.ReplyCount, comment.LikeCount, false, comment.CreatedAt));

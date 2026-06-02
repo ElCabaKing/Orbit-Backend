@@ -30,6 +30,7 @@ public class OrbitDbContext : Microsoft.EntityFrameworkCore.DbContext
     public DbSet<CommunityMember> CommunityMembers => Set<CommunityMember>();
     public DbSet<CommunityJoinRequest> CommunityJoinRequests => Set<CommunityJoinRequest>();
     public DbSet<CommunityInvitation> CommunityInvitations => Set<CommunityInvitation>();
+    public DbSet<Notification> Notifications => Set<Notification>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

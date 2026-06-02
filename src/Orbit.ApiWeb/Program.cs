@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Orbit.ApiWeb.Validators;
+using Orbit.ApiWeb.Workers;
 using Orbit.Application.Features.Auth;
 using Orbit.Application.Features.Chats;
 using Orbit.Application.Features.Follows;
@@ -34,6 +35,7 @@ builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<ICommunityService, CommunityService>();
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterValidator>();
+builder.Services.AddHostedService<NotificationBackgroundService>();
 
 var frontendUrl = Environment.GetEnvironmentVariable(EnvironmentConstants.FrontendUrl);
 var frontendUrlDev = Environment.GetEnvironmentVariable(EnvironmentConstants.FrontendUrlDev);
@@ -72,7 +74,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 var path = context.HttpContext.Request.Path;
 
                 if (!string.IsNullOrEmpty(accessToken) &&
-                    path.StartsWithSegments("/hubs/chat"))
+                    path.StartsWithSegments("/hubs/"))
                 {
                     context.Token = accessToken;
                 }
@@ -138,6 +140,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<Orbit.ApiWeb.Hubs.ChatHub>("/hubs/chat");
+app.MapHub<Orbit.ApiWeb.Hubs.NotificationHub>("/hubs/notifications");
 
 app.MapOpenApi();
 app.MapScalarApiReference(options =>

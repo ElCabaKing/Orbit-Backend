@@ -1,6 +1,7 @@
 using CloudinaryDotNet;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Orbit.Application.Features.Notifications;
 using Orbit.Application.Interfaces;
 using Orbit.Infrastructure.DbContext;
 using Orbit.Infrastructure.Repositories;
@@ -28,6 +29,7 @@ public static class DependencyInjection
         services.AddRedis();
         services.AddEmail();
         services.AddRepositories();
+        services.AddNotifications();
 
         return services;
     }
@@ -92,6 +94,13 @@ public static class DependencyInjection
 
         services.AddScoped<IResetTokenService, ResetTokenService>();
 
+        return services;
+    }
+
+    public static IServiceCollection AddNotifications(this IServiceCollection services)
+    {
+        services.AddSingleton<NotificationChannel>();
+        services.AddScoped<INotificationService, NotificationService>();
         return services;
     }
 
