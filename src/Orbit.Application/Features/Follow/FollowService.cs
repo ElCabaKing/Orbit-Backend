@@ -10,13 +10,16 @@ public class FollowService : IFollowService
 {
     private readonly IGenericRepository<Follow> _followRepo;
     private readonly IGenericRepository<Profile> _profileRepo;
+    private readonly IGenericRepository<UserBan> _userBanRepo;
 
     public FollowService(
         IGenericRepository<Follow> followRepo,
-        IGenericRepository<Profile> profileRepo)
+        IGenericRepository<Profile> profileRepo,
+        IGenericRepository<UserBan> userBanRepo)
     {
         _followRepo = followRepo;
         _profileRepo = profileRepo;
+        _userBanRepo = userBanRepo;
     }
 
     public async Task<Result> FollowUserAsync(Guid followerProfileId, string username)
@@ -28,6 +31,16 @@ public class FollowService : IFollowService
 
         if (targetProfile.Id == followerProfileId)
             return Result.Failure(ResponseMessages.CannotFollowYourself);
+
+        var blockedByTarget = await _userBanRepo.FirstOrDefaultAsync(b =>
+            b.BlockerProfileId == targetProfile.Id && b.BlockedProfileId == followerProfileId);
+        if (blockedByTarget is not null)
+            return Result.Failure(ResponseMessages.CannotFollowBlockedByUser);
+
+        var followerBlockedTarget = await _userBanRepo.FirstOrDefaultAsync(b =>
+            b.BlockerProfileId == followerProfileId && b.BlockedProfileId == targetProfile.Id);
+        if (followerBlockedTarget is not null)
+            return Result.Failure(ResponseMessages.CannotFollowBlockedUser);
 
         var existingFollow = await _followRepo.FirstOrDefaultAsync(f =>
             f.FollowerId == followerProfileId && f.FollowingId == targetProfile.Id);

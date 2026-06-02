@@ -19,6 +19,7 @@ public class PostService : IPostService
     private readonly IGenericRepository<Role> _roleRepo;
     private readonly IGenericRepository<UserRole> _userRoleRepo;
     private readonly IGenericRepository<SavedPost> _savedPostRepo;
+    private readonly IGenericRepository<UserBan> _userBanRepo;
     private readonly ICloudinaryService _cloudinaryService;
 
     public PostService(
@@ -32,6 +33,7 @@ public class PostService : IPostService
         IGenericRepository<Role> roleRepo,
         IGenericRepository<UserRole> userRoleRepo,
         IGenericRepository<SavedPost> savedPostRepo,
+        IGenericRepository<UserBan> userBanRepo,
         ICloudinaryService cloudinaryService)
     {
         _postRepo = postRepo;
@@ -44,10 +46,11 @@ public class PostService : IPostService
         _roleRepo = roleRepo;
         _userRoleRepo = userRoleRepo;
         _savedPostRepo = savedPostRepo;
+        _userBanRepo = userBanRepo;
         _cloudinaryService = cloudinaryService;
     }
 
-    public async Task<Result<PostResponse>> CreatePostAsync(Guid authUserId, string content, List<MediaUploadData>? mediaFiles)
+    public async Task<Result<PostResponse>> CreatePostAsync(Guid authUserId, string? content, List<MediaUploadData>? mediaFiles)
     {
         var profile = await _profileRepo.FirstOrDefaultAsync(p => p.AuthUserId == authUserId);
         if (profile is null)
@@ -57,7 +60,7 @@ public class PostService : IPostService
         {
             Id = Guid.NewGuid(),
             ProfileId = profile.Id,
-            Content = content,
+            Content = content ?? string.Empty,
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
@@ -114,6 +117,14 @@ public class PostService : IPostService
         if (post?.Profile is null)
             return Result<PostResponse>.Failure(ResponseMessages.PostNotFound);
 
+        if (currentProfileId.HasValue && currentProfileId.Value != post.Profile.Id)
+        {
+            var isBlocked = await _userBanRepo.FirstOrDefaultAsync(b =>
+                b.BlockerProfileId == post.Profile.Id && b.BlockedProfileId == currentProfileId.Value);
+            if (isBlocked is not null)
+                return Result<PostResponse>.Failure(ResponseMessages.PostNotFound);
+        }
+
         bool isLiked = false;
         bool isSaved = false;
         bool isFollowing = false;
@@ -143,13 +154,17 @@ public class PostService : IPostService
     {
         var skip = (page - 1) * pageSize;
 
+        HashSet<Guid> blockerProfileIds = [];
+        if (currentProfileId.HasValue)
+            blockerProfileIds = await GetBlockerProfileIdsAsync(currentProfileId.Value);
+
         var posts = await _postRepo.GetPagedAsync(
-            p => p.CommunityId == null,
+            p => p.CommunityId == null && !blockerProfileIds.Contains(p.ProfileId),
             p => p.CreatedAt,
             skip,
             pageSize);
 
-        var totalCount = await _postRepo.CountAsync(p => p.CommunityId == null);
+        var totalCount = await _postRepo.CountAsync(p => p.CommunityId == null && !blockerProfileIds.Contains(p.ProfileId));
 
         return await BuildPagedPostResponse(posts, totalCount, page, pageSize, currentProfileId);
     }
@@ -158,6 +173,20 @@ public class PostService : IPostService
     {
         var follows = await _followRepo.GetListAsync(f => f.FollowerId == currentProfileId);
         var followedProfileIds = follows.Select(f => f.FollowingId).ToHashSet();
+
+        if (followedProfileIds.Count == 0)
+        {
+            return Result<PagedResult<PostResponse>>.Success(new PagedResult<PostResponse>
+            {
+                Items = [],
+                TotalCount = 0,
+                Page = page,
+                PageSize = pageSize,
+            });
+        }
+
+        var blockerProfileIds = await GetBlockerProfileIdsAsync(currentProfileId);
+        followedProfileIds.ExceptWith(blockerProfileIds);
 
         if (followedProfileIds.Count == 0)
         {
@@ -191,6 +220,14 @@ public class PostService : IPostService
         if (profile is null)
             return Result<PagedResult<PostResponse>>.Failure(ResponseMessages.ProfileNotFound);
 
+        if (currentProfileId.HasValue && currentProfileId.Value != profile.Id)
+        {
+            var isBlocked = await _userBanRepo.FirstOrDefaultAsync(b =>
+                b.BlockerProfileId == profile.Id && b.BlockedProfileId == currentProfileId.Value);
+            if (isBlocked is not null)
+                return Result<PagedResult<PostResponse>>.Failure(ResponseMessages.PostNotFound);
+        }
+
         var skip = (page - 1) * pageSize;
         var posts = await _postRepo.GetPagedAsync(
             p => p.ProfileId == profile.Id,
@@ -206,18 +243,23 @@ public class PostService : IPostService
     public async Task<Result<PagedResult<PostResponse>>> SearchPostsAsync(string query, Guid? currentProfileId, int page, int pageSize)
     {
         var skip = (page - 1) * pageSize;
+
+        HashSet<Guid> blockerProfileIds = [];
+        if (currentProfileId.HasValue)
+            blockerProfileIds = await GetBlockerProfileIdsAsync(currentProfileId.Value);
+
         var posts = await _postRepo.GetPagedAsync(
-            p => p.Content.Contains(query),
+            p => p.Content.Contains(query) && !blockerProfileIds.Contains(p.ProfileId),
             p => p.CreatedAt,
             skip,
             pageSize);
 
-        var totalCount = await _postRepo.CountAsync(p => p.Content.Contains(query));
+        var totalCount = await _postRepo.CountAsync(p => p.Content.Contains(query) && !blockerProfileIds.Contains(p.ProfileId));
 
         return await BuildPagedPostResponse(posts, totalCount, page, pageSize, currentProfileId);
     }
 
-    public async Task<Result<PostResponse>> UpdatePostAsync(Guid authUserId, Guid postId, string content, List<MediaUploadData>? mediaFiles = null)
+    public async Task<Result<PostResponse>> UpdatePostAsync(Guid authUserId, Guid postId, string? content, List<MediaUploadData>? mediaFiles = null)
     {
         var profile = await _profileRepo.FirstOrDefaultAsync(p => p.AuthUserId == authUserId);
         if (profile is null)
@@ -227,7 +269,7 @@ public class PostService : IPostService
         if (post is null)
             return Result<PostResponse>.Failure(ResponseMessages.PostNotFound);
 
-        post.Content = content;
+        post.Content = content ?? string.Empty;
         post.UpdatedAt = DateTime.UtcNow;
         _postRepo.Update(post);
 
@@ -466,6 +508,14 @@ public class PostService : IPostService
         if (post is null)
             return Result<CommentResponse>.Failure(ResponseMessages.PostNotFound);
 
+        if (post.ProfileId != profileId)
+        {
+            var isBlocked = await _userBanRepo.FirstOrDefaultAsync(b =>
+                b.BlockerProfileId == post.ProfileId && b.BlockedProfileId == profileId);
+            if (isBlocked is not null)
+                return Result<CommentResponse>.Failure(ResponseMessages.NotAuthorized);
+        }
+
         Comment? parentComment = null;
         if (parentCommentId.HasValue)
         {
@@ -682,6 +732,12 @@ public class PostService : IPostService
         await _commentRepo.SaveChangesAsync();
 
         return Result<CommentLikeResponse>.Success(new CommentLikeResponse(commentId, false, comment.LikeCount));
+    }
+
+    private async Task<HashSet<Guid>> GetBlockerProfileIdsAsync(Guid profileId)
+    {
+        var bans = await _userBanRepo.GetListAsync(b => b.BlockedProfileId == profileId);
+        return bans.Select(b => b.BlockerProfileId).ToHashSet();
     }
 
     private async Task<HashSet<Guid>> GetLikedCommentIds(List<Comment> comments, Guid? currentProfileId)

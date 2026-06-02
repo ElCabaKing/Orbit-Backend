@@ -140,8 +140,11 @@ public class PostController : ControllerBase
     [ProducesResponseType<Result>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(Guid id, [FromForm] UpdatePostRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.Content) || request.Content.Length > 1000)
-            return BadRequest(new { isSuccess = false, message = ValidationConstants.ContentRequiredAndMaxLength });
+        if (string.IsNullOrWhiteSpace(request.Content) && (request.Media is null || request.Media.Count == 0))
+            return BadRequest(new { isSuccess = false, message = "Content or media is required" });
+
+        if (request.Content?.Length > 1000)
+            return BadRequest(new { isSuccess = false, message = ValidationConstants.ContentMaxLength });
 
         var authUserId = GetAuthUserId();
         if (authUserId is null)

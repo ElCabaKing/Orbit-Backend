@@ -5,12 +5,12 @@ namespace Orbit.Application.Interfaces;
 
 public interface IPostService
 {
-    Task<Result<PostResponse>> CreatePostAsync(Guid authUserId, string content, List<MediaUploadData>? mediaFiles);
+    Task<Result<PostResponse>> CreatePostAsync(Guid authUserId, string? content, List<MediaUploadData>? mediaFiles);
     Task<Result<PostResponse>> GetPostAsync(Guid postId, Guid? currentProfileId);
     Task<Result<PagedResult<PostResponse>>> GetGeneralPostsAsync(Guid? currentProfileId, int page, int pageSize);
     Task<Result<PagedResult<PostResponse>>> GetFollowingPostsAsync(Guid currentProfileId, int page, int pageSize);
     Task<Result<PagedResult<PostResponse>>> GetProfilePostsAsync(string username, Guid? currentProfileId, int page, int pageSize);
-    Task<Result<PostResponse>> UpdatePostAsync(Guid authUserId, Guid postId, string content, List<MediaUploadData>? mediaFiles = null);
+    Task<Result<PostResponse>> UpdatePostAsync(Guid authUserId, Guid postId, string? content, List<MediaUploadData>? mediaFiles = null);
     Task<Result> DeletePostAsync(Guid authUserId, Guid postId);
     Task<Result<LikeResponse>> LikePostAsync(Guid profileId, Guid postId);
     Task<Result<LikeResponse>> UnlikePostAsync(Guid profileId, Guid postId);

@@ -12,7 +12,6 @@ public class CreatePostValidator : AbstractValidator<CreatePostRequest>
     public CreatePostValidator()
     {
         RuleFor(x => x.Content)
-            .NotEmpty().WithMessage(ValidationConstants.ContentRequired)
             .MaximumLength(1000).WithMessage(ValidationConstants.ContentMaxLength);
 
         When(x => x.Media is not null && x.Media.Count > 0, () =>
@@ -25,6 +24,10 @@ public class CreatePostValidator : AbstractValidator<CreatePostRequest>
                 .Must(media => media.Count <= 10)
                 .WithMessage(ValidationConstants.MediaMaxCount);
         });
+
+        RuleFor(x => x)
+            .Must(x => !string.IsNullOrWhiteSpace(x.Content) || (x.Media is not null && x.Media.Count > 0))
+            .WithMessage("Content or media is required");
     }
 
     private static bool BeValidExtension(IFormFile file)

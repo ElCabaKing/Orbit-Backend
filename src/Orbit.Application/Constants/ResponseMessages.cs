@@ -41,6 +41,8 @@ public static class ResponseMessages
     public const string NotFollowing = "You are not following this user";
     public const string FollowSuccessful = "Follow successful";
     public const string UnfollowSuccessful = "Unfollow successful";
+    public const string CannotFollowBlockedByUser = "You cannot follow this user because they have blocked you";
+    public const string CannotFollowBlockedUser = "You cannot follow a user you have blocked";
 
     // Chat
     public const string MutualFollowRequired = "Both users must follow each other to start a chat";

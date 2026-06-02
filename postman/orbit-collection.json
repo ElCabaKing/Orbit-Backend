@@ -58,6 +58,10 @@
       "value": ""
     },
     {
+      "key": "blockerUsername",
+      "value": "johndoe"
+    },
+    {
       "key": "joinRequestId",
       "value": ""
     },
@@ -840,6 +844,77 @@
               ]
             }
           }
+        },
+        {
+          "name": "Get Profile by Username - Blocked by user (expect 404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test(\"Profile not found when blocked\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "description": "This test simulates a blocked user trying to view the blocker's profile. First, login as the blocker user, block {{targetUsername}}, then login as {{targetUsername}} and run this request with the blocker's username. Expected: 404 with isSuccess: false.",
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/profiles/{{blockerUsername}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "profiles", "{{blockerUsername}}"]
+            }
+          }
+        },
+        {
+          "name": "Search Profiles - Blocked user excluded",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Blocked user not in search results\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.eql(true);",
+                  "    if (json.data.items.length > 0) {",
+                  "        var usernames = json.data.items.map(i => i.username);",
+                  "        pm.expect(usernames).to.not.include(pm.collectionVariables.get('blockerUsername'));",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "description": "Run this after being blocked by another user. When logged in as the blocked user, searching for the blocker's username should not return the blocker's profile.",
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/profiles/search?q={{blockerUsername}}&page=1&pageSize=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "profiles", "search"],
+              "query": [
+                { "key": "q", "value": "{{blockerUsername}}" },
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "20" }
+              ]
+            }
+          }
         }
       ]
     },
@@ -1607,6 +1682,70 @@
           ],
           "request": {
             "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/profiles/{{targetUsername}}/follow",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "profiles", "{{targetUsername}}", "follow"]
+            }
+          }
+        },
+        {
+          "name": "Follow User - Blocked by target (expect error)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test(\"Cannot follow user who blocked you\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.eql(false);",
+                  "    pm.expect(json.message).to.eql('You cannot follow this user because they have blocked you');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "description": "Run this after being blocked by {{blockerUsername}}. The blocked user should not be able to follow the user who blocked them.",
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/profiles/{{blockerUsername}}/follow",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "profiles", "{{blockerUsername}}", "follow"]
+            }
+          }
+        },
+        {
+          "name": "Follow User - Blocker cannot follow blocked (expect error)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test(\"Cannot follow a user you blocked\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.eql(false);",
+                  "    pm.expect(json.message).to.eql('You cannot follow a user you have blocked');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "description": "Run this after blocking {{targetUsername}}. The blocker should not be able to follow the user they blocked.",
+            "method": "POST",
             "header": [
               { "key": "Authorization", "value": "Bearer {{accessToken}}" }
             ],

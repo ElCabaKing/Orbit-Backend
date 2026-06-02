@@ -15,6 +15,8 @@ public class ProfileService : IProfileService
     private readonly IGenericRepository<UserBan> _userBanRepo;
     private readonly IGenericRepository<Role> _roleRepo;
     private readonly IGenericRepository<UserRole> _userRoleRepo;
+    private readonly IGenericRepository<Orbit.Domain.Entities.Post> _postRepo;
+    private readonly IGenericRepository<Comment> _commentRepo;
     private readonly ICloudinaryService _cloudinaryService;
 
     public ProfileService(
@@ -24,6 +26,8 @@ public class ProfileService : IProfileService
         IGenericRepository<UserBan> userBanRepo,
         IGenericRepository<Role> roleRepo,
         IGenericRepository<UserRole> userRoleRepo,
+        IGenericRepository<Orbit.Domain.Entities.Post> postRepo,
+        IGenericRepository<Comment> commentRepo,
         ICloudinaryService cloudinaryService)
     {
         _profileRepo = profileRepo;
@@ -32,6 +36,8 @@ public class ProfileService : IProfileService
         _userBanRepo = userBanRepo;
         _roleRepo = roleRepo;
         _userRoleRepo = userRoleRepo;
+        _postRepo = postRepo;
+        _commentRepo = commentRepo;
         _cloudinaryService = cloudinaryService;
     }
 
@@ -41,6 +47,14 @@ public class ProfileService : IProfileService
         var profile = await _profileRepo.FirstOrDefaultAsync(p => p.UsernameSlug == slug, p => p.Prefix);
         if (profile is null)
             return Result<ProfileResponse>.Failure(ResponseMessages.ProfileNotFound);
+
+        if (currentProfileId.HasValue && currentProfileId.Value != profile.Id)
+        {
+            var isBlocked = await _userBanRepo.FirstOrDefaultAsync(b =>
+                b.BlockerProfileId == profile.Id && b.BlockedProfileId == currentProfileId.Value);
+            if (isBlocked is not null)
+                return Result<ProfileResponse>.Failure(ResponseMessages.ProfileNotFound);
+        }
 
         bool isFollowing = false;
         if (currentProfileId.HasValue && currentProfileId.Value != profile.Id)
@@ -176,14 +190,30 @@ public class ProfileService : IProfileService
         var normalized = query.ToLowerInvariant();
         var skip = (page - 1) * pageSize;
 
+        HashSet<Guid> excludedProfileIds = [];
+        if (currentProfileId.HasValue)
+        {
+            var blockerProfileIds = (await _userBanRepo.GetListAsync(b =>
+                b.BlockedProfileId == currentProfileId.Value))
+                .Select(b => b.BlockerProfileId);
+
+            var blockedProfileIds = (await _userBanRepo.GetListAsync(b =>
+                b.BlockerProfileId == currentProfileId.Value))
+                .Select(b => b.BlockedProfileId);
+
+            excludedProfileIds = blockerProfileIds.Concat(blockedProfileIds).ToHashSet();
+        }
+
         var profiles = await _profileRepo.GetPagedAsync(
-            p => p.UsernameSlug.StartsWith(normalized) || p.DisplayName.ToLower().StartsWith(normalized),
+            p => (p.UsernameSlug.StartsWith(normalized) || p.DisplayName.ToLower().StartsWith(normalized))
+                && !excludedProfileIds.Contains(p.Id),
             p => p.FollowersCount,
             skip,
             pageSize);
 
         var totalCount = await _profileRepo.CountAsync(
-            p => p.UsernameSlug.StartsWith(normalized) || p.DisplayName.ToLower().StartsWith(normalized));
+            p => (p.UsernameSlug.StartsWith(normalized) || p.DisplayName.ToLower().StartsWith(normalized))
+                && !excludedProfileIds.Contains(p.Id));
 
         HashSet<Guid> followedIds = [];
         if (currentProfileId.HasValue)
@@ -330,6 +360,42 @@ public class ProfileService : IProfileService
         };
 
         await _userBanRepo.CreateAsync(ban);
+
+        var blockerPostIds = await _postRepo.GetListAsync(p => p.ProfileId == blockerProfileId);
+        var blockerPostIdHashes = blockerPostIds.Select(p => p.Id).ToHashSet();
+
+        if (blockerPostIdHashes.Count > 0)
+        {
+            var blockedComments = await _commentRepo.GetListAsync(c =>
+                c.ProfileId == target.Id && blockerPostIdHashes.Contains(c.PostId));
+
+            foreach (var comment in blockedComments)
+            {
+                comment.IsActive = false;
+                _commentRepo.Update(comment);
+
+                var post = blockerPostIds.FirstOrDefault(p => p.Id == comment.PostId);
+                if (post is not null)
+                {
+                    post.CommentCount = Math.Max(0, post.CommentCount - 1);
+                    _postRepo.Update(post);
+                }
+
+                if (comment.ParentCommentId.HasValue)
+                {
+                    var parentComment = await _commentRepo.GetByIdAsync(comment.ParentCommentId.Value);
+                    if (parentComment is not null)
+                    {
+                        parentComment.ReplyCount = Math.Max(0, parentComment.ReplyCount - 1);
+                        _commentRepo.Update(parentComment);
+                    }
+                }
+            }
+
+            if (blockedComments.Count > 0)
+                await _commentRepo.SaveChangesAsync();
+        }
+
         return Result.Success(ResponseMessages.BlockSuccessful);
     }
 
