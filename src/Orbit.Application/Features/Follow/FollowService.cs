@@ -150,12 +150,9 @@ public class FollowService : IFollowService
         List<Follow> follows, Func<Follow, Guid> profileIdSelector, Guid? currentProfileId = null)
     {
         var profileIds = follows.Select(profileIdSelector).Distinct().ToList();
-        var profiles = new List<Profile>();
-        foreach (var pid in profileIds)
-        {
-            var p = await _profileRepo.GetByIdAsync(pid);
-            if (p is not null) profiles.Add(p);
-        }
+        var profiles = profileIds.Count > 0
+            ? await _profileRepo.GetListAsync(p => profileIds.Contains(p.Id))
+            : [];
         var profileMap = profiles.ToDictionary(p => p.Id);
 
         HashSet<Guid> followedIds = [];

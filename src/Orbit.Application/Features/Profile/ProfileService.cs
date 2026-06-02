@@ -362,12 +362,9 @@ public class ProfileService : IProfileService
         var totalCount = await _userBanRepo.CountAsync(b => b.BlockerProfileId == profileId);
 
         var blockedProfileIds = bans.Select(b => b.BlockedProfileId).Distinct().ToList();
-        var profiles = new List<Orbit.Domain.Entities.Profile>();
-        foreach (var pid in blockedProfileIds)
-        {
-            var p = await _profileRepo.GetByIdAsync(pid);
-            if (p is not null) profiles.Add(p);
-        }
+        var profiles = blockedProfileIds.Count > 0
+            ? await _profileRepo.GetListAsync(p => blockedProfileIds.Contains(p.Id))
+            : [];
         var profileMap = profiles.ToDictionary(p => p.Id);
 
         var banMap = bans.ToDictionary(b => b.BlockedProfileId);

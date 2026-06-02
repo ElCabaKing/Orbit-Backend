@@ -21,6 +21,11 @@ public class UserSessionConfiguration : IEntityTypeConfiguration<UserSession>
             .HasMaxLength(500)
             .IsRequired();
 
+        builder.Property(s => s.TokenKey)
+            .HasColumnName("token_key")
+            .HasMaxLength(64)
+            .IsRequired();
+
         builder.Property(s => s.ExpiresAt)
             .HasColumnName("expires_at")
             .IsRequired();
@@ -31,6 +36,10 @@ public class UserSessionConfiguration : IEntityTypeConfiguration<UserSession>
 
         builder.HasIndex(s => s.AuthUserId)
             .HasDatabaseName("ix_user_sessions_auth_user");
+
+        builder.HasIndex(s => s.TokenKey)
+            .HasDatabaseName("ix_user_sessions_token_key")
+            .IsUnique();
 
         builder.HasQueryFilter(s => s.AuthUser.IsActive);
 

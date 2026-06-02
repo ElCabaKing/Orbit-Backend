@@ -107,12 +107,8 @@ public class PostService : IPostService
 
     public async Task<Result<PostResponse>> GetPostAsync(Guid postId, Guid? currentProfileId)
     {
-        var post = await _postRepo.FirstOrDefaultAsync(p => p.Id == postId);
-        if (post is null)
-            return Result<PostResponse>.Failure(ResponseMessages.PostNotFound);
-
-        var profile = await _profileRepo.GetByIdAsync(post.ProfileId);
-        if (profile is null)
+        var post = await _postRepo.FirstOrDefaultAsync(p => p.Id == postId, p => p.Profile);
+        if (post?.Profile is null)
             return Result<PostResponse>.Failure(ResponseMessages.PostNotFound);
 
         bool isLiked = false;
@@ -122,17 +118,17 @@ public class PostService : IPostService
             var like = await _likeRepo.FirstOrDefaultAsync(l => l.ProfileId == currentProfileId.Value && l.PostId == postId);
             isLiked = like is not null;
 
-            if (profile.Id != currentProfileId.Value)
+            if (post.Profile.Id != currentProfileId.Value)
             {
                 var follow = await _followRepo.FirstOrDefaultAsync(f =>
-                    f.FollowerId == currentProfileId.Value && f.FollowingId == profile.Id);
+                    f.FollowerId == currentProfileId.Value && f.FollowingId == post.Profile.Id);
                 isFollowing = follow is not null;
             }
         }
 
         var media = await _mediaRepo.GetListAsync(m => m.PostId == postId);
 
-        var author = BuildAuthorResponse(profile, isFollowing);
+        var author = BuildAuthorResponse(post.Profile, isFollowing);
         return Result<PostResponse>.Success(BuildPostResponse(post, author, isLiked, media));
     }
 
@@ -351,9 +347,10 @@ public class PostService : IPostService
         if (post is null)
             return Result<CommentResponse>.Failure(ResponseMessages.PostNotFound);
 
+        Comment? parentComment = null;
         if (parentCommentId.HasValue)
         {
-            var parentComment = await _commentRepo.GetByIdAsync(parentCommentId.Value);
+            parentComment = await _commentRepo.GetByIdAsync(parentCommentId.Value);
             if (parentComment is null)
                 return Result<CommentResponse>.Failure(ResponseMessages.ParentCommentNotFound);
 
@@ -380,15 +377,11 @@ public class PostService : IPostService
         _postRepo.Update(post);
         await _postRepo.SaveChangesAsync();
 
-        if (parentCommentId.HasValue)
+        if (parentComment is not null)
         {
-            var parentComment = await _commentRepo.GetByIdAsync(parentCommentId.Value);
-            if (parentComment is not null)
-            {
-                parentComment.ReplyCount++;
-                _commentRepo.Update(parentComment);
-                await _commentRepo.SaveChangesAsync();
-            }
+            parentComment.ReplyCount++;
+            _commentRepo.Update(parentComment);
+            await _commentRepo.SaveChangesAsync();
         }
 
         var profile = await _profileRepo.GetByIdAsync(profileId);
@@ -409,13 +402,7 @@ public class PostService : IPostService
         var totalCount = await _commentRepo.CountAsync(c => c.PostId == postId && c.ParentCommentId == null);
 
         var profileIds = comments.Select(c => c.ProfileId).Distinct().ToList();
-        var profiles = new List<Profile>();
-        foreach (var pid in profileIds)
-        {
-            var p = await _profileRepo.GetByIdAsync(pid);
-            if (p is not null) profiles.Add(p);
-        }
-        var profileMap = profiles.ToDictionary(p => p.Id);
+        var profileMap = await BatchLoadProfilesAsync(profileIds);
 
         var likedCommentIds = await GetLikedCommentIds(comments, currentProfileId);
 
@@ -460,13 +447,7 @@ public class PostService : IPostService
         var totalCount = await _commentRepo.CountAsync(c => c.ParentCommentId == commentId);
 
         var profileIds = replies.Select(c => c.ProfileId).Distinct().ToList();
-        var profiles = new List<Profile>();
-        foreach (var pid in profileIds)
-        {
-            var p = await _profileRepo.GetByIdAsync(pid);
-            if (p is not null) profiles.Add(p);
-        }
-        var profileMap = profiles.ToDictionary(p => p.Id);
+        var profileMap = await BatchLoadProfilesAsync(profileIds);
 
         var likedCommentIds = await GetLikedCommentIds(replies, currentProfileId);
 
@@ -599,13 +580,7 @@ public class PostService : IPostService
         List<Orbit.Domain.Entities.Post> posts, int totalCount, int page, int pageSize, Guid? currentProfileId)
     {
         var profileIds = posts.Select(p => p.ProfileId).Distinct().ToList();
-        var profiles = new List<Profile>();
-        foreach (var pid in profileIds)
-        {
-            var p = await _profileRepo.GetByIdAsync(pid);
-            if (p is not null) profiles.Add(p);
-        }
-        var profileMap = profiles.ToDictionary(p => p.Id);
+        var profileMap = await BatchLoadProfilesAsync(profileIds);
 
         HashSet<Guid> likedPostIds = [];
         HashSet<Guid> followedProfileIds = [];
@@ -647,6 +622,13 @@ public class PostService : IPostService
             Page = page,
             PageSize = pageSize,
         });
+    }
+
+    private async Task<Dictionary<Guid, Profile>> BatchLoadProfilesAsync(List<Guid> profileIds)
+    {
+        if (profileIds.Count == 0) return [];
+        var profiles = await _profileRepo.GetListAsync(p => profileIds.Contains(p.Id));
+        return profiles.ToDictionary(p => p.Id);
     }
 
     private static PostAuthorResponse BuildAuthorResponse(Profile profile, bool isFollowing = false)

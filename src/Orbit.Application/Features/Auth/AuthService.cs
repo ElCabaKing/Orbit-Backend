@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Text;
 using Orbit.Application.Common;
 using Orbit.Application.Constants;
 using Orbit.Application.DTOs;
@@ -73,13 +74,16 @@ public class AuthService : IAuthService
         string? profilePictureFileName,
         string? bio)
     {
-        var emailExists = await _authUserRepo.FirstOrDefaultAsync(u => u.Email == email);
-        if (emailExists is not null)
+        var usernameSlug = username.ToLowerInvariant();
+
+        var emailCheck = _authUserRepo.FirstOrDefaultAsync(u => u.Email == email);
+        var usernameCheck = _profileRepo.FirstOrDefaultAsync(p => p.UsernameSlug == usernameSlug);
+        await Task.WhenAll(emailCheck, usernameCheck);
+
+        if (emailCheck.Result is not null)
             return Result<RegisterResponse>.Failure(ResponseMessages.EmailAlreadyRegistered);
 
-        var usernameSlug = username.ToLowerInvariant();
-        var usernameExists = await _profileRepo.FirstOrDefaultAsync(p => p.UsernameSlug == usernameSlug);
-        if (usernameExists is not null)
+        if (usernameCheck.Result is not null)
             return Result<RegisterResponse>.Failure(ResponseMessages.UsernameAlreadyTaken);
 
         var passwordHash = _passwordHasher.Hash(password);
@@ -177,12 +181,14 @@ public class AuthService : IAuthService
 
         var rawRefreshToken = _jwtService.GenerateRefreshToken();
         var refreshTokenHash = _passwordHasher.Hash(rawRefreshToken);
+        var tokenKey = ComputeTokenKey(rawRefreshToken);
 
         var session = new UserSession
         {
             Id = Guid.NewGuid(),
             AuthUserId = authUser.Id,
             RefreshTokenHash = refreshTokenHash,
+            TokenKey = tokenKey,
             ExpiresAt = DateTime.UtcNow.AddDays(7),
             CreatedAt = DateTime.UtcNow,
         };
@@ -196,21 +202,12 @@ public class AuthService : IAuthService
 
     public async Task<Result> LogoutAsync(string refreshToken)
     {
-        var sessions = await _sessionRepo.GetAllAsync();
+        var tokenKey = ComputeTokenKey(refreshToken);
+        var session = await _sessionRepo.FirstOrDefaultAsync(s => s.TokenKey == tokenKey);
 
-        UserSession? sessionToDelete = null;
-        foreach (var session in sessions)
+        if (session is not null)
         {
-            if (_passwordHasher.Verify(refreshToken, session.RefreshTokenHash))
-            {
-                sessionToDelete = session;
-                break;
-            }
-        }
-
-        if (sessionToDelete is not null)
-        {
-            await _sessionRepo.DeleteAsync(sessionToDelete.Id);
+            await _sessionRepo.DeleteAsync(session.Id);
         }
 
         return Result.Success(ResponseMessages.LoggedOutSuccessfully);
@@ -243,17 +240,9 @@ public class AuthService : IAuthService
         if (profile is null)
             return Result<AuthResponse>.Failure(ResponseMessages.InvalidOrExpiredToken);
 
-        var sessions = await _sessionRepo.GetListAsync(s => s.AuthUserId == authUserId);
-
-        UserSession? validSession = null;
-        foreach (var session in sessions)
-        {
-            if (_passwordHasher.Verify(refreshToken, session.RefreshTokenHash))
-            {
-                validSession = session;
-                break;
-            }
-        }
+        var tokenKey = ComputeTokenKey(refreshToken);
+        var validSession = await _sessionRepo.FirstOrDefaultAsync(s =>
+            s.TokenKey == tokenKey && s.AuthUserId == authUserId);
 
         if (validSession is null)
             return Result<AuthResponse>.Failure(ResponseMessages.InvalidRefreshToken);
@@ -270,12 +259,14 @@ public class AuthService : IAuthService
 
         var rawRefreshToken = _jwtService.GenerateRefreshToken();
         var refreshTokenHash = _passwordHasher.Hash(rawRefreshToken);
+        var newTokenKey = ComputeTokenKey(rawRefreshToken);
 
         var newSession = new UserSession
         {
             Id = Guid.NewGuid(),
             AuthUserId = authUserId,
             RefreshTokenHash = refreshTokenHash,
+            TokenKey = newTokenKey,
             ExpiresAt = DateTime.UtcNow.AddDays(7),
             CreatedAt = DateTime.UtcNow,
         };
@@ -382,14 +373,14 @@ public class AuthService : IAuthService
         if (userRoles.Count == 0) return [];
 
         var roleIds = userRoles.Select(ur => ur.RoleId).ToList();
-        var roles = new List<string>();
-        foreach (var roleId in roleIds)
-        {
-            var role = await _roleRepo.GetByIdAsync(roleId);
-            if (role is not null)
-                roles.Add(role.Name);
-        }
-        return roles;
+        var roles = await _roleRepo.GetListAsync(r => roleIds.Contains(r.Id));
+        return roles.Select(r => r.Name).ToList();
+    }
+
+    private static string ComputeTokenKey(string rawToken)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(rawToken));
+        return Convert.ToHexStringLower(bytes);
     }
 
     private async Task<UserPrefixResponse?> GetPrefixAsync(Guid? prefixId)
