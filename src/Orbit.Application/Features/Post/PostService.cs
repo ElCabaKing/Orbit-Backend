@@ -143,12 +143,12 @@ public class PostService : IPostService
     {
         var skip = (page - 1) * pageSize;
         var posts = await _postRepo.GetPagedAsync(
-            p => true,
+            p => p.CommunityId == null,
             p => p.CreatedAt,
             skip,
             pageSize);
 
-        var totalCount = await _postRepo.CountAsync(p => true);
+        var totalCount = await _postRepo.CountAsync(p => p.CommunityId == null);
 
         return await BuildPagedPostResponse(posts, totalCount, page, pageSize, currentProfileId);
     }

@@ -16,6 +16,9 @@ public class PostConfiguration : IEntityTypeConfiguration<Post>
             .HasColumnName("profile_id")
             .IsRequired();
 
+        builder.Property(p => p.CommunityId)
+            .HasColumnName("community_id");
+
         builder.Property(p => p.Content)
             .HasColumnName("content")
             .HasMaxLength(1000)
@@ -51,10 +54,18 @@ public class PostConfiguration : IEntityTypeConfiguration<Post>
         builder.HasIndex(p => p.CreatedAt)
             .HasDatabaseName("ix_posts_created_at");
 
+        builder.HasIndex(p => p.CommunityId)
+            .HasDatabaseName("ix_posts_community_id");
+
         builder.HasOne(p => p.Profile)
             .WithMany()
             .HasForeignKey(p => p.ProfileId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(p => p.Community)
+            .WithMany(c => c.Posts)
+            .HasForeignKey(p => p.CommunityId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasQueryFilter(p => p.IsActive);
     }

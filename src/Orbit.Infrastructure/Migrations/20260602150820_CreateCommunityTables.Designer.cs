@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Orbit.Infrastructure.DbContext;
 
@@ -11,9 +12,11 @@ using Orbit.Infrastructure.DbContext;
 namespace Orbit.Infrastructure.Migrations
 {
     [DbContext(typeof(OrbitDbContext))]
-    partial class OrbitDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260602150820_CreateCommunityTables")]
+    partial class CreateCommunityTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -249,98 +252,6 @@ namespace Orbit.Infrastructure.Migrations
                         .HasDatabaseName("ux_communities_slug");
 
                     b.ToTable("communities", (string)null);
-                });
-
-            modelBuilder.Entity("Orbit.Domain.Entities.CommunityInvitation", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("CommunityId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("community_id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("SYSUTCDATETIME()");
-
-                    b.Property<Guid>("InvitedByProfileId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("invited_by_profile_id");
-
-                    b.Property<Guid>("ProfileId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("profile_id");
-
-                    b.Property<DateTime?>("RespondedAt")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("responded_at");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
-                        .HasDefaultValue("pending")
-                        .HasColumnName("status");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("InvitedByProfileId");
-
-                    b.HasIndex("ProfileId");
-
-                    b.HasIndex("CommunityId", "ProfileId")
-                        .IsUnique()
-                        .HasDatabaseName("ux_community_invitations_community_profile");
-
-                    b.ToTable("community_invitations", (string)null);
-                });
-
-            modelBuilder.Entity("Orbit.Domain.Entities.CommunityJoinRequest", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("CommunityId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("community_id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("SYSUTCDATETIME()");
-
-                    b.Property<Guid>("ProfileId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("profile_id");
-
-                    b.Property<DateTime?>("RespondedAt")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("responded_at");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
-                        .HasDefaultValue("pending")
-                        .HasColumnName("status");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProfileId");
-
-                    b.HasIndex("CommunityId", "ProfileId")
-                        .IsUnique()
-                        .HasDatabaseName("ux_community_join_requests_community_profile");
-
-                    b.ToTable("community_join_requests", (string)null);
                 });
 
             modelBuilder.Entity("Orbit.Domain.Entities.CommunityMember", b =>
@@ -651,10 +562,6 @@ namespace Orbit.Infrastructure.Migrations
                         .HasDefaultValue(0)
                         .HasColumnName("comment_count");
 
-                    b.Property<Guid?>("CommunityId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("community_id");
-
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasMaxLength(1000)
@@ -696,9 +603,6 @@ namespace Orbit.Infrastructure.Migrations
                         .HasDefaultValueSql("SYSUTCDATETIME()");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CommunityId")
-                        .HasDatabaseName("ix_posts_community_id");
 
                     b.HasIndex("CreatedAt")
                         .HasDatabaseName("ix_posts_created_at");
@@ -1247,52 +1151,6 @@ namespace Orbit.Infrastructure.Migrations
                     b.Navigation("Owner");
                 });
 
-            modelBuilder.Entity("Orbit.Domain.Entities.CommunityInvitation", b =>
-                {
-                    b.HasOne("Orbit.Domain.Entities.Community", "Community")
-                        .WithMany()
-                        .HasForeignKey("CommunityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Orbit.Domain.Entities.Profile", "InvitedBy")
-                        .WithMany()
-                        .HasForeignKey("InvitedByProfileId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Orbit.Domain.Entities.Profile", "Profile")
-                        .WithMany()
-                        .HasForeignKey("ProfileId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("Community");
-
-                    b.Navigation("InvitedBy");
-
-                    b.Navigation("Profile");
-                });
-
-            modelBuilder.Entity("Orbit.Domain.Entities.CommunityJoinRequest", b =>
-                {
-                    b.HasOne("Orbit.Domain.Entities.Community", "Community")
-                        .WithMany()
-                        .HasForeignKey("CommunityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Orbit.Domain.Entities.Profile", "Profile")
-                        .WithMany()
-                        .HasForeignKey("ProfileId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("Community");
-
-                    b.Navigation("Profile");
-                });
-
             modelBuilder.Entity("Orbit.Domain.Entities.CommunityMember", b =>
                 {
                     b.HasOne("Orbit.Domain.Entities.Community", "Community")
@@ -1382,18 +1240,11 @@ namespace Orbit.Infrastructure.Migrations
 
             modelBuilder.Entity("Orbit.Domain.Entities.Post", b =>
                 {
-                    b.HasOne("Orbit.Domain.Entities.Community", "Community")
-                        .WithMany("Posts")
-                        .HasForeignKey("CommunityId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("Orbit.Domain.Entities.Profile", "Profile")
                         .WithMany()
                         .HasForeignKey("ProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Community");
 
                     b.Navigation("Profile");
                 });
@@ -1539,8 +1390,6 @@ namespace Orbit.Infrastructure.Migrations
             modelBuilder.Entity("Orbit.Domain.Entities.Community", b =>
                 {
                     b.Navigation("Members");
-
-                    b.Navigation("Posts");
                 });
 
             modelBuilder.Entity("Orbit.Domain.Entities.Conversation", b =>

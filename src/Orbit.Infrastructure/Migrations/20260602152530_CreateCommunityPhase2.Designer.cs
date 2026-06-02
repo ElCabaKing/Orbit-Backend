@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Orbit.Infrastructure.DbContext;
 
@@ -11,9 +12,11 @@ using Orbit.Infrastructure.DbContext;
 namespace Orbit.Infrastructure.Migrations
 {
     [DbContext(typeof(OrbitDbContext))]
-    partial class OrbitDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260602152530_CreateCommunityPhase2")]
+    partial class CreateCommunityPhase2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -651,10 +654,6 @@ namespace Orbit.Infrastructure.Migrations
                         .HasDefaultValue(0)
                         .HasColumnName("comment_count");
 
-                    b.Property<Guid?>("CommunityId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("community_id");
-
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasMaxLength(1000)
@@ -696,9 +695,6 @@ namespace Orbit.Infrastructure.Migrations
                         .HasDefaultValueSql("SYSUTCDATETIME()");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CommunityId")
-                        .HasDatabaseName("ix_posts_community_id");
 
                     b.HasIndex("CreatedAt")
                         .HasDatabaseName("ix_posts_created_at");
@@ -1382,18 +1378,11 @@ namespace Orbit.Infrastructure.Migrations
 
             modelBuilder.Entity("Orbit.Domain.Entities.Post", b =>
                 {
-                    b.HasOne("Orbit.Domain.Entities.Community", "Community")
-                        .WithMany("Posts")
-                        .HasForeignKey("CommunityId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("Orbit.Domain.Entities.Profile", "Profile")
                         .WithMany()
                         .HasForeignKey("ProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Community");
 
                     b.Navigation("Profile");
                 });
@@ -1539,8 +1528,6 @@ namespace Orbit.Infrastructure.Migrations
             modelBuilder.Entity("Orbit.Domain.Entities.Community", b =>
                 {
                     b.Navigation("Members");
-
-                    b.Navigation("Posts");
                 });
 
             modelBuilder.Entity("Orbit.Domain.Entities.Conversation", b =>

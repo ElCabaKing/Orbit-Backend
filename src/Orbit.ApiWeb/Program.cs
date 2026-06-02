@@ -9,6 +9,7 @@ using Orbit.Application.Features.Chats;
 using Orbit.Application.Features.Follows;
 using Orbit.Application.Features.Posts;
 using Orbit.Application.Features.Profiles;
+using Orbit.Application.Features.Communities;
 using Orbit.Application.Features.Roles;
 using Orbit.Application.Interfaces;
 using Orbit.Infrastructure.Extensions;
@@ -31,6 +32,7 @@ builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<IFollowService, FollowService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<ICommunityService, CommunityService>();
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterValidator>();
 
 var frontendUrl = Environment.GetEnvironmentVariable(EnvironmentConstants.FrontendUrl);

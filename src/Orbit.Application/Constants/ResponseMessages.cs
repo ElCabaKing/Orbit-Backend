@@ -90,4 +90,39 @@ public static class ResponseMessages
     public const string NotBlocked = "User is not blocked";
     public const string BlockSuccessful = "User blocked successfully";
     public const string UnblockSuccessful = "User unblocked successfully";
+
+    // Community
+    public const string CommunityNotFound = "Community not found";
+    public const string CommunityCreated = "Community created successfully";
+    public const string CommunityUpdated = "Community updated successfully";
+    public const string CommunityDeleted = "Community deleted successfully";
+    public const string CommunityNameRequired = "Community name is required";
+    public const string SlugAlreadyTaken = "This community name is already taken";
+    public const string AlreadyMember = "You are already a member of this community";
+    public const string NotMember = "You are not a member of this community";
+    public const string CannotJoinPrivate = "This community is private. Use a join request instead";
+    public const string JoinRequestSent = "Join request sent successfully";
+    public const string JoinRequestAlreadyPending = "You already have a pending join request";
+    public const string JoinRequestNotFound = "Join request not found";
+    public const string JoinRequestApproved = "Join request approved";
+    public const string JoinRequestRejected = "Join request rejected";
+    public const string CannotApproveOwnRequest = "You cannot approve your own request";
+    public const string InvitationSent = "Invitation sent successfully";
+    public const string InvitationNotFound = "Invitation not found";
+    public const string InvitationAlreadyPending = "User already has a pending invitation";
+    public const string InvitationAccepted = "Invitation accepted";
+    public const string InvitationDeclined = "Invitation declined";
+    public const string CannotInviteYourself = "Cannot invite yourself";
+    public const string AlreadyInvited = "User is already invited";
+    public const string OwnerCannotLeave = "The owner cannot leave the community. Transfer ownership first or delete the community";
+    public const string JoinSuccessful = "You joined the community";
+    public const string LeaveSuccessful = "You left the community";
+    public const string MemberKicked = "Member kicked successfully";
+    public const string CannotKickOwner = "Cannot kick the owner of the community";
+    public const string CoLeaderAssigned = "Co-leader assigned successfully";
+    public const string CoLeaderRemoved = "Co-leader removed successfully";
+    public const string AlreadyCoLeader = "User is already a co-leader";
+    public const string NotCoLeader = "User is not a co-leader";
+    public const string NoPermission = "You don't have permission to perform this action";
+    public const string PrivateCommunityRequiresAuth = "Authentication is required to view members of a private community";
 }

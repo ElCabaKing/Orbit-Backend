@@ -76,14 +76,12 @@ public class AuthService : IAuthService
     {
         var usernameSlug = username.ToLowerInvariant();
 
-        var emailCheck = _authUserRepo.FirstOrDefaultAsync(u => u.Email == email);
-        var usernameCheck = _profileRepo.FirstOrDefaultAsync(p => p.UsernameSlug == usernameSlug);
-        await Task.WhenAll(emailCheck, usernameCheck);
-
-        if (emailCheck.Result is not null)
+        var emailExists = await _authUserRepo.FirstOrDefaultAsync(u => u.Email == email);
+        if (emailExists is not null)
             return Result<RegisterResponse>.Failure(ResponseMessages.EmailAlreadyRegistered);
 
-        if (usernameCheck.Result is not null)
+        var usernameExists = await _profileRepo.FirstOrDefaultAsync(p => p.UsernameSlug == usernameSlug);
+        if (usernameExists is not null)
             return Result<RegisterResponse>.Failure(ResponseMessages.UsernameAlreadyTaken);
 
         var passwordHash = _passwordHasher.Hash(password);

@@ -26,6 +26,10 @@ public class OrbitDbContext : Microsoft.EntityFrameworkCore.DbContext
     public DbSet<CommentLike> CommentLikes => Set<CommentLike>();
     public DbSet<UserBan> UserBans => Set<UserBan>();
     public DbSet<SavedPost> SavedPosts => Set<SavedPost>();
+    public DbSet<Community> Communities => Set<Community>();
+    public DbSet<CommunityMember> CommunityMembers => Set<CommunityMember>();
+    public DbSet<CommunityJoinRequest> CommunityJoinRequests => Set<CommunityJoinRequest>();
+    public DbSet<CommunityInvitation> CommunityInvitations => Set<CommunityInvitation>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

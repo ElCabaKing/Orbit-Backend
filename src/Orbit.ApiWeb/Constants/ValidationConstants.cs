@@ -48,4 +48,9 @@ public static class ValidationConstants
 
     // Chat - Message
     public const string ContentMaxLengthMessage = "Content must not exceed 2000 characters";
+
+    // Community
+    public const string CommunityNameRequired = "Community name is required";
+    public const string CommunityNameMaxLength = "Community name must not exceed 100 characters";
+    public const string CommunityDescriptionMaxLength = "Community description must not exceed 500 characters";
 }
