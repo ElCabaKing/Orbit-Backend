@@ -29,6 +29,10 @@ public class PostConfiguration : IEntityTypeConfiguration<Post>
             .HasColumnName("comment_count")
             .HasDefaultValue(0);
 
+        builder.Property(p => p.SaveCount)
+            .HasColumnName("save_count")
+            .HasDefaultValue(0);
+
         builder.Property(p => p.IsActive)
             .HasColumnName("is_active")
             .HasDefaultValue(true);

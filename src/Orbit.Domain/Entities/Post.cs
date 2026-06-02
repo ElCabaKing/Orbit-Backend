@@ -8,6 +8,7 @@ public class Post : BaseEntity, ISoftDeletable
     public string Content { get; set; } = null!;
     public int LikeCount { get; set; }
     public int CommentCount { get; set; }
+    public int SaveCount { get; set; }
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
@@ -16,4 +17,5 @@ public class Post : BaseEntity, ISoftDeletable
     public ICollection<PostMedia> PostMedia { get; set; } = [];
     public ICollection<PostLike> PostLikes { get; set; } = [];
     public ICollection<Comment> Comments { get; set; } = [];
+    public ICollection<SavedPost> SavedBy { get; set; } = [];
 }

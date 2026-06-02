@@ -18,6 +18,7 @@ public class PostService : IPostService
     private readonly IGenericRepository<Follow> _followRepo;
     private readonly IGenericRepository<Role> _roleRepo;
     private readonly IGenericRepository<UserRole> _userRoleRepo;
+    private readonly IGenericRepository<SavedPost> _savedPostRepo;
     private readonly ICloudinaryService _cloudinaryService;
 
     public PostService(
@@ -30,6 +31,7 @@ public class PostService : IPostService
         IGenericRepository<Follow> followRepo,
         IGenericRepository<Role> roleRepo,
         IGenericRepository<UserRole> userRoleRepo,
+        IGenericRepository<SavedPost> savedPostRepo,
         ICloudinaryService cloudinaryService)
     {
         _postRepo = postRepo;
@@ -41,6 +43,7 @@ public class PostService : IPostService
         _followRepo = followRepo;
         _roleRepo = roleRepo;
         _userRoleRepo = userRoleRepo;
+        _savedPostRepo = savedPostRepo;
         _cloudinaryService = cloudinaryService;
     }
 
@@ -102,7 +105,7 @@ public class PostService : IPostService
         await _profileRepo.SaveChangesAsync();
 
         var author = BuildAuthorResponse(profile);
-        return Result<PostResponse>.Success(BuildPostResponse(post, author, false, mediaList));
+        return Result<PostResponse>.Success(BuildPostResponse(post, author, false, false, mediaList));
     }
 
     public async Task<Result<PostResponse>> GetPostAsync(Guid postId, Guid? currentProfileId)
@@ -112,11 +115,15 @@ public class PostService : IPostService
             return Result<PostResponse>.Failure(ResponseMessages.PostNotFound);
 
         bool isLiked = false;
+        bool isSaved = false;
         bool isFollowing = false;
         if (currentProfileId.HasValue)
         {
             var like = await _likeRepo.FirstOrDefaultAsync(l => l.ProfileId == currentProfileId.Value && l.PostId == postId);
             isLiked = like is not null;
+
+            var saved = await _savedPostRepo.FirstOrDefaultAsync(s => s.ProfileId == currentProfileId.Value && s.PostId == postId);
+            isSaved = saved is not null;
 
             if (post.Profile.Id != currentProfileId.Value)
             {
@@ -129,7 +136,7 @@ public class PostService : IPostService
         var media = await _mediaRepo.GetListAsync(m => m.PostId == postId);
 
         var author = BuildAuthorResponse(post.Profile, isFollowing);
-        return Result<PostResponse>.Success(BuildPostResponse(post, author, isLiked, media));
+        return Result<PostResponse>.Success(BuildPostResponse(post, author, isLiked, isSaved, media));
     }
 
     public async Task<Result<PagedResult<PostResponse>>> GetTimelineAsync(Guid? currentProfileId, int page, int pageSize)
@@ -237,7 +244,7 @@ public class PostService : IPostService
         var mediaList = await _mediaRepo.GetListAsync(m => m.PostId == postId);
 
         var author = BuildAuthorResponse(profile);
-        return Result<PostResponse>.Success(BuildPostResponse(post, author, false, mediaList));
+        return Result<PostResponse>.Success(BuildPostResponse(post, author, false, false, mediaList));
     }
 
     public async Task<Result> DeletePostAsync(Guid authUserId, Guid postId)
@@ -339,6 +346,87 @@ public class PostService : IPostService
         await _postRepo.SaveChangesAsync();
 
         return Result<LikeResponse>.Success(new LikeResponse(postId, false, post.LikeCount));
+    }
+
+    public async Task<Result<SaveResponse>> SavePostAsync(Guid profileId, Guid postId)
+    {
+        var post = await _postRepo.FirstOrDefaultAsync(p => p.Id == postId);
+        if (post is null)
+            return Result<SaveResponse>.Failure(ResponseMessages.PostNotFound);
+
+        var existing = await _savedPostRepo.FirstOrDefaultAsync(s => s.ProfileId == profileId && s.PostId == postId);
+        if (existing is not null)
+            return Result<SaveResponse>.Success(new SaveResponse(postId, true));
+
+        var savedPost = new SavedPost
+        {
+            Id = Guid.NewGuid(),
+            ProfileId = profileId,
+            PostId = postId,
+            CreatedAt = DateTime.UtcNow,
+        };
+
+        await _savedPostRepo.CreateAsync(savedPost);
+
+        post.SaveCount++;
+        post.UpdatedAt = DateTime.UtcNow;
+        _postRepo.Update(post);
+        await _postRepo.SaveChangesAsync();
+
+        return Result<SaveResponse>.Success(new SaveResponse(postId, true));
+    }
+
+    public async Task<Result<SaveResponse>> UnsavePostAsync(Guid profileId, Guid postId)
+    {
+        var post = await _postRepo.FirstOrDefaultAsync(p => p.Id == postId);
+        if (post is null)
+            return Result<SaveResponse>.Failure(ResponseMessages.PostNotFound);
+
+        var savedPost = await _savedPostRepo.FirstOrDefaultAsync(s => s.ProfileId == profileId && s.PostId == postId);
+        if (savedPost is null)
+            return Result<SaveResponse>.Success(new SaveResponse(postId, false));
+
+        await _savedPostRepo.DeleteAsync(savedPost.Id);
+
+        post.SaveCount = Math.Max(0, post.SaveCount - 1);
+        post.UpdatedAt = DateTime.UtcNow;
+        _postRepo.Update(post);
+        await _postRepo.SaveChangesAsync();
+
+        return Result<SaveResponse>.Success(new SaveResponse(postId, false));
+    }
+
+    public async Task<Result<PagedResult<PostResponse>>> GetSavedPostsAsync(Guid profileId, int page, int pageSize)
+    {
+        var skip = (page - 1) * pageSize;
+        var savedPosts = await _savedPostRepo.GetPagedAsync(
+            s => s.ProfileId == profileId,
+            s => s.CreatedAt,
+            skip,
+            pageSize);
+
+        var totalCount = await _savedPostRepo.CountAsync(s => s.ProfileId == profileId);
+
+        if (savedPosts.Count == 0)
+            return Result<PagedResult<PostResponse>>.Success(new PagedResult<PostResponse>
+            {
+                Items = [],
+                TotalCount = 0,
+                Page = page,
+                PageSize = pageSize,
+            });
+
+        var postIds = savedPosts.Select(s => s.PostId).ToList();
+        var posts = await _postRepo.GetListAsync(p => postIds.Contains(p.Id));
+
+        var postMap = posts.ToDictionary(p => p.Id);
+        var orderedPosts = savedPosts
+            .Select(s => postMap.GetValueOrDefault(s.PostId))
+            .Where(p => p is not null)
+            .Cast<Orbit.Domain.Entities.Post>()
+            .ToList();
+
+        return await BuildPagedPostResponse(orderedPosts, totalCount, page, pageSize, profileId);
     }
 
     public async Task<Result<CommentResponse>> CreateCommentAsync(Guid profileId, Guid postId, string content, Guid? parentCommentId = null)
@@ -583,6 +671,7 @@ public class PostService : IPostService
         var profileMap = await BatchLoadProfilesAsync(profileIds);
 
         HashSet<Guid> likedPostIds = [];
+        HashSet<Guid> savedPostIds = [];
         HashSet<Guid> followedProfileIds = [];
         if (currentProfileId.HasValue && posts.Count > 0)
         {
@@ -590,6 +679,10 @@ public class PostService : IPostService
             var likes = await _likeRepo.GetListAsync(l =>
                 l.ProfileId == currentProfileId.Value && postIds.Contains(l.PostId));
             likedPostIds = likes.Select(l => l.PostId).ToHashSet();
+
+            var saved = await _savedPostRepo.GetListAsync(s =>
+                s.ProfileId == currentProfileId.Value && postIds.Contains(s.PostId));
+            savedPostIds = saved.Select(s => s.PostId).ToHashSet();
 
             var follows = await _followRepo.GetListAsync(f =>
                 f.FollowerId == currentProfileId.Value && profileIds.Contains(f.FollowingId));
@@ -612,7 +705,7 @@ public class PostService : IPostService
                 ? BuildAuthorResponse(prof, isFollowing)
                 : new PostAuthorResponse(p.ProfileId, "Unknown", "Unknown", null, false);
             var media = mediaMap.GetValueOrDefault(p.Id) ?? [];
-            return BuildPostResponse(p, author, likedPostIds.Contains(p.Id), media);
+            return BuildPostResponse(p, author, likedPostIds.Contains(p.Id), savedPostIds.Contains(p.Id), media);
         }).ToList();
 
         return Result<PagedResult<PostResponse>>.Success(new PagedResult<PostResponse>
@@ -642,7 +735,7 @@ public class PostService : IPostService
         );
     }
 
-    private static PostResponse BuildPostResponse(Orbit.Domain.Entities.Post post, PostAuthorResponse author, bool isLiked, List<PostMedia> media)
+    private static PostResponse BuildPostResponse(Orbit.Domain.Entities.Post post, PostAuthorResponse author, bool isLiked, bool isSaved, List<PostMedia> media)
     {
         return new PostResponse(
             post.Id,
@@ -660,7 +753,9 @@ public class PostService : IPostService
             )).ToList(),
             post.LikeCount,
             post.CommentCount,
+            post.SaveCount,
             isLiked,
+            isSaved,
             post.CreatedAt,
             post.UpdatedAt
         );

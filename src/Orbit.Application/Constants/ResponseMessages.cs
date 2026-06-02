@@ -70,6 +70,12 @@ public static class ResponseMessages
     public const string CannotBanYourself = "Cannot ban yourself";
     public const string CannotBanAdmin = "Cannot ban an admin user";
 
+    // Saved Posts
+    public const string PostAlreadySaved = "Post is already saved";
+    public const string PostNotSaved = "Post is not saved";
+    public const string PostSaved = "Post saved successfully";
+    public const string PostUnsaved = "Post unsaved successfully";
+
     // Moderator
     public const string NotAuthorizedModerator = "Only moderators or admins can perform this action";
 

@@ -32,4 +32,5 @@ public class Profile : BaseEntity, ISoftDeletable
     public UserPrefix? Prefix { get; set; }
     public Profile? BannedBy { get; set; }
     public ICollection<UserRole> UserRoles { get; set; } = [];
+    public ICollection<SavedPost> SavedPosts { get; set; } = [];
 }

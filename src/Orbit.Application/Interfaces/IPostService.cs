@@ -20,4 +20,7 @@ public interface IPostService
     Task<Result<CommentLikeResponse>> LikeCommentAsync(Guid profileId, Guid commentId);
     Task<Result<CommentLikeResponse>> UnlikeCommentAsync(Guid profileId, Guid commentId);
     Task<Result> DeleteCommentAsync(Guid authUserId, Guid commentId);
+    Task<Result<SaveResponse>> SavePostAsync(Guid profileId, Guid postId);
+    Task<Result<SaveResponse>> UnsavePostAsync(Guid profileId, Guid postId);
+    Task<Result<PagedResult<PostResponse>>> GetSavedPostsAsync(Guid profileId, int page, int pageSize);
 }

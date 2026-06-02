@@ -7,7 +7,9 @@ public record PostResponse(
     List<PostMediaResponse> Media,
     int LikeCount,
     int CommentCount,
+    int SaveCount,
     bool IsLiked,
+    bool IsSaved,
     DateTime CreatedAt,
     DateTime UpdatedAt
 );
