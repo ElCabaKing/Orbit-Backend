@@ -141,16 +141,73 @@ public class PostService : IPostService
 
     public async Task<Result<PagedResult<PostResponse>>> GetTimelineAsync(Guid? currentProfileId, int page, int pageSize)
     {
-        var skip = (page - 1) * pageSize;
-        var posts = await _postRepo.GetPagedAsync(
-            p => p.CommunityId == null,
-            p => p.CreatedAt,
-            skip,
-            pageSize);
+        HashSet<Guid> followedProfileIds = [];
 
-        var totalCount = await _postRepo.CountAsync(p => p.CommunityId == null);
+        if (currentProfileId.HasValue)
+        {
+            var follows = await _followRepo.GetListAsync(f => f.FollowerId == currentProfileId.Value);
+            followedProfileIds = follows.Select(f => f.FollowingId).ToHashSet();
+        }
+
+        List<Post> posts;
+        int totalCount;
+
+        if (followedProfileIds.Count > 0)
+        {
+            var suggestedPerPage = Math.Max(1, pageSize / 4);
+            var followedPerPage = pageSize - suggestedPerPage;
+
+            var followedSkip = (page - 1) * followedPerPage;
+            var suggestedSkip = (page - 1) * suggestedPerPage;
+
+            var followedPosts = await _postRepo.GetPagedAsync(
+                p => p.CommunityId == null && followedProfileIds.Contains(p.ProfileId),
+                p => p.CreatedAt,
+                followedSkip,
+                followedPerPage);
+
+            var suggestedPosts = await _postRepo.GetPagedAsync(
+                p => p.CommunityId == null && !followedProfileIds.Contains(p.ProfileId),
+                p => p.CreatedAt,
+                suggestedSkip,
+                suggestedPerPage);
+
+            posts = InterleavePosts(followedPosts, suggestedPosts, followedPerPage, suggestedPerPage);
+            totalCount = await _postRepo.CountAsync(p => p.CommunityId == null);
+        }
+        else
+        {
+            var skip = (page - 1) * pageSize;
+
+            posts = await _postRepo.GetPagedAsync(
+                p => p.CommunityId == null,
+                p => p.CreatedAt,
+                skip,
+                pageSize);
+
+            totalCount = await _postRepo.CountAsync(p => p.CommunityId == null);
+        }
 
         return await BuildPagedPostResponse(posts, totalCount, page, pageSize, currentProfileId);
+    }
+
+    private static List<Post> InterleavePosts(List<Post> followed, List<Post> suggested, int followedPerPage, int suggestedPerPage)
+    {
+        var result = new List<Post>(followedPerPage + suggestedPerPage);
+        var fIdx = 0;
+        var sIdx = 0;
+        var batchSize = suggestedPerPage > 0 ? followedPerPage / suggestedPerPage : followedPerPage;
+
+        while (fIdx < followed.Count || sIdx < suggested.Count)
+        {
+            for (var i = 0; i < batchSize && fIdx < followed.Count; i++)
+                result.Add(followed[fIdx++]);
+
+            if (sIdx < suggested.Count)
+                result.Add(suggested[sIdx++]);
+        }
+
+        return result;
     }
 
     public async Task<Result<PagedResult<PostResponse>>> GetProfilePostsAsync(string username, Guid? currentProfileId, int page, int pageSize)
