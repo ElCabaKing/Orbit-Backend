@@ -1263,10 +1263,16 @@
               }
             }
           ],
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/api/posts/{{postId}}/comments?page=1&pageSize=20",
+    "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/posts/{{postId}}/comments?page=1&pageSize=20",
               "host": ["{{baseUrl}}"],
               "path": ["api", "posts", "{{postId}}", "comments"],
               "query": [
@@ -1299,10 +1305,16 @@
               }
             }
           ],
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/api/comments/{{commentId}}/replies?page=1&pageSize=20",
+    "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/comments/{{commentId}}/replies?page=1&pageSize=20",
               "host": ["{{baseUrl}}"],
               "path": ["api", "comments", "{{commentId}}", "replies"],
               "query": [
