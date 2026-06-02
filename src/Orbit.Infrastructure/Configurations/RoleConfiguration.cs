@@ -24,5 +24,12 @@ public class RoleConfiguration : IEntityTypeConfiguration<Role>
         builder.HasIndex(r => r.Name)
             .IsUnique()
             .HasDatabaseName("ux_roles_name");
+
+        var seedDate = new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc);
+        builder.HasData(
+            new Role { Id = Guid.Parse("00000001-0000-0000-0000-000000000001"), Name = "admin", CreatedAt = seedDate },
+            new Role { Id = Guid.Parse("00000001-0000-0000-0000-000000000002"), Name = "moderator", CreatedAt = seedDate },
+            new Role { Id = Guid.Parse("00000001-0000-0000-0000-000000000003"), Name = "user", CreatedAt = seedDate }
+        );
     }
 }

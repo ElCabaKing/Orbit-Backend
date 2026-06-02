@@ -10,7 +10,11 @@ public class UserRoleConfiguration : IEntityTypeConfiguration<UserRole>
     {
         builder.ToTable("user_roles");
 
-        builder.HasKey(ur => new { ur.ProfileId, ur.RoleId });
+        builder.HasKey(ur => ur.Id);
+
+        builder.Property(ur => ur.Id)
+            .HasColumnName("id")
+            .HasDefaultValueSql("NEWID()");
 
         builder.Property(ur => ur.ProfileId)
             .HasColumnName("profile_id")
@@ -23,6 +27,10 @@ public class UserRoleConfiguration : IEntityTypeConfiguration<UserRole>
         builder.Property(ur => ur.AssignedAt)
             .HasColumnName("assigned_at")
             .HasDefaultValueSql("SYSUTCDATETIME()");
+
+        builder.HasIndex(ur => new { ur.ProfileId, ur.RoleId })
+            .IsUnique()
+            .HasDatabaseName("ux_user_roles_profile_role");
 
         builder.HasOne(ur => ur.Profile)
             .WithMany(p => p.UserRoles)

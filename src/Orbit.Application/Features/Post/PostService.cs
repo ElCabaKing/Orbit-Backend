@@ -16,6 +16,8 @@ public class PostService : IPostService
     private readonly IGenericRepository<PostMedia> _mediaRepo;
     private readonly IGenericRepository<CommentLike> _commentLikeRepo;
     private readonly IGenericRepository<Follow> _followRepo;
+    private readonly IGenericRepository<Role> _roleRepo;
+    private readonly IGenericRepository<UserRole> _userRoleRepo;
     private readonly ICloudinaryService _cloudinaryService;
 
     public PostService(
@@ -26,6 +28,8 @@ public class PostService : IPostService
         IGenericRepository<PostMedia> mediaRepo,
         IGenericRepository<CommentLike> commentLikeRepo,
         IGenericRepository<Follow> followRepo,
+        IGenericRepository<Role> roleRepo,
+        IGenericRepository<UserRole> userRoleRepo,
         ICloudinaryService cloudinaryService)
     {
         _postRepo = postRepo;
@@ -35,6 +39,8 @@ public class PostService : IPostService
         _mediaRepo = mediaRepo;
         _commentLikeRepo = commentLikeRepo;
         _followRepo = followRepo;
+        _roleRepo = roleRepo;
+        _userRoleRepo = userRoleRepo;
         _cloudinaryService = cloudinaryService;
     }
 
@@ -244,7 +250,27 @@ public class PostService : IPostService
         if (profile is null)
             return Result.Failure(ResponseMessages.ProfileNotFound);
 
-        var post = await _postRepo.FirstOrDefaultAsync(p => p.Id == postId && p.ProfileId == profile.Id);
+        var isModeratorOrAdmin = false;
+        var moderatorRole = await _roleRepo.FirstOrDefaultAsync(r => r.Name == "moderator");
+        var adminRole = await _roleRepo.FirstOrDefaultAsync(r => r.Name == "admin");
+
+        if (moderatorRole is not null)
+        {
+            var hasModerator = await _userRoleRepo.FirstOrDefaultAsync(ur =>
+                ur.ProfileId == profile.Id && ur.RoleId == moderatorRole.Id);
+            if (hasModerator is not null) isModeratorOrAdmin = true;
+        }
+        if (!isModeratorOrAdmin && adminRole is not null)
+        {
+            var hasAdmin = await _userRoleRepo.FirstOrDefaultAsync(ur =>
+                ur.ProfileId == profile.Id && ur.RoleId == adminRole.Id);
+            if (hasAdmin is not null) isModeratorOrAdmin = true;
+        }
+
+        var post = isModeratorOrAdmin
+            ? await _postRepo.FirstOrDefaultAsync(p => p.Id == postId)
+            : await _postRepo.FirstOrDefaultAsync(p => p.Id == postId && p.ProfileId == profile.Id);
+
         if (post is null)
             return Result.Failure(ResponseMessages.PostNotFound);
 
@@ -257,9 +283,16 @@ public class PostService : IPostService
 
         await _postRepo.DeleteAsync(postId);
 
-        profile.PostsCount = Math.Max(0, profile.PostsCount - 1);
-        profile.UpdatedAt = DateTime.UtcNow;
-        _profileRepo.Update(profile);
+        var ownerProfile = isModeratorOrAdmin
+            ? await _profileRepo.GetByIdAsync(post.ProfileId)
+            : profile;
+
+        if (ownerProfile is not null)
+        {
+            ownerProfile.PostsCount = Math.Max(0, ownerProfile.PostsCount - 1);
+            ownerProfile.UpdatedAt = DateTime.UtcNow;
+            _profileRepo.Update(ownerProfile);
+        }
         await _profileRepo.SaveChangesAsync();
 
         return Result.Success(ResponseMessages.PostDeleted);

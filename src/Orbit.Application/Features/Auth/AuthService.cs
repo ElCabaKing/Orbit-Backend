@@ -17,6 +17,8 @@ public class AuthService : IAuthService
     private readonly IGenericRepository<UserSession> _sessionRepo;
     private readonly IGenericRepository<UserPrefix> _prefixRepo;
     private readonly IGenericRepository<EmailTemplate> _emailTemplateRepo;
+    private readonly IGenericRepository<Role> _roleRepo;
+    private readonly IGenericRepository<UserRole> _userRoleRepo;
     private readonly IPasswordHasher _passwordHasher;
     private readonly ICloudinaryService _cloudinaryService;
     private readonly IJwtService _jwtService;
@@ -31,6 +33,8 @@ public class AuthService : IAuthService
         IGenericRepository<UserSession> sessionRepo,
         IGenericRepository<UserPrefix> prefixRepo,
         IGenericRepository<EmailTemplate> emailTemplateRepo,
+        IGenericRepository<Role> roleRepo,
+        IGenericRepository<UserRole> userRoleRepo,
         IPasswordHasher passwordHasher,
         ICloudinaryService cloudinaryService,
         IJwtService jwtService,
@@ -42,6 +46,8 @@ public class AuthService : IAuthService
         _sessionRepo = sessionRepo;
         _prefixRepo = prefixRepo;
         _emailTemplateRepo = emailTemplateRepo;
+        _roleRepo = roleRepo;
+        _userRoleRepo = userRoleRepo;
         _passwordHasher = passwordHasher;
         _cloudinaryService = cloudinaryService;
         _jwtService = jwtService;
@@ -119,6 +125,20 @@ public class AuthService : IAuthService
 
         await _profileRepo.CreateAsync(profile);
 
+        var userRole = await _roleRepo.FirstOrDefaultAsync(r => r.Name == "user");
+        if (userRole is not null)
+        {
+            var userRoleAssignment = new UserRole
+            {
+                Id = Guid.NewGuid(),
+                ProfileId = profile.Id,
+                RoleId = userRole.Id,
+                AssignedAt = DateTime.UtcNow,
+            };
+            await _userRoleRepo.AddEntityAsync(userRoleAssignment);
+            await _userRoleRepo.SaveChangesAsync();
+        }
+
         await SendWelcomeEmailAsync(email, displayName, username);
 
         return Result<RegisterResponse>.Success(new RegisterResponse(
@@ -147,9 +167,13 @@ public class AuthService : IAuthService
         if (profile is null)
             return Result<AuthResponse>.Failure(ResponseMessages.InvalidCredentials);
 
+        if (profile.IsBanned)
+            return Result<AuthResponse>.Failure(ResponseMessages.AccountBanned);
+
         var prefixResponse = await GetPrefixAsync(profile.PrefixId);
 
-        var (accessToken, expiresAt) = _jwtService.GenerateAccessToken(authUser.Id, profile.Id, profile.Username);
+        var roles = await GetUserRolesAsync(profile.Id);
+        var (accessToken, expiresAt) = _jwtService.GenerateAccessToken(authUser.Id, profile.Id, profile.Username, roles);
 
         var rawRefreshToken = _jwtService.GenerateRefreshToken();
         var refreshTokenHash = _passwordHasher.Hash(rawRefreshToken);
@@ -166,7 +190,7 @@ public class AuthService : IAuthService
         await _sessionRepo.CreateAsync(session);
 
         var profileResponse = BuildProfileResponse(profile, prefixResponse);
-        var response = new AuthResponse(accessToken, rawRefreshToken, expiresAt, profileResponse);
+        var response = new AuthResponse(accessToken, rawRefreshToken, expiresAt, profileResponse, roles);
         return Result<AuthResponse>.Success(response, ResponseMessages.LoginSuccessful);
     }
 
@@ -241,7 +265,8 @@ public class AuthService : IAuthService
 
         var prefixResponse = await GetPrefixAsync(profile.PrefixId);
 
-        var (newAccessToken, expiresAt) = _jwtService.GenerateAccessToken(authUserId, profile.Id, profile.Username);
+        var roles = await GetUserRolesAsync(profile.Id);
+        var (newAccessToken, expiresAt) = _jwtService.GenerateAccessToken(authUserId, profile.Id, profile.Username, roles);
 
         var rawRefreshToken = _jwtService.GenerateRefreshToken();
         var refreshTokenHash = _passwordHasher.Hash(rawRefreshToken);
@@ -258,7 +283,7 @@ public class AuthService : IAuthService
         await _sessionRepo.CreateAsync(newSession);
 
         var profileResponse = BuildProfileResponse(profile, prefixResponse);
-        var response = new AuthResponse(newAccessToken, rawRefreshToken, expiresAt, profileResponse);
+        var response = new AuthResponse(newAccessToken, rawRefreshToken, expiresAt, profileResponse, roles);
         return Result<AuthResponse>.Success(response, ResponseMessages.TokenRefreshed);
     }
 
@@ -349,6 +374,22 @@ public class AuthService : IAuthService
             .Replace("{{displayName}}", displayName);
 
         await _emailService.SendAsync(email, displayName, subject, htmlBody);
+    }
+
+    private async Task<List<string>> GetUserRolesAsync(Guid profileId)
+    {
+        var userRoles = await _userRoleRepo.GetListAsync(ur => ur.ProfileId == profileId);
+        if (userRoles.Count == 0) return [];
+
+        var roleIds = userRoles.Select(ur => ur.RoleId).ToList();
+        var roles = new List<string>();
+        foreach (var roleId in roleIds)
+        {
+            var role = await _roleRepo.GetByIdAsync(roleId);
+            if (role is not null)
+                roles.Add(role.Name);
+        }
+        return roles;
     }
 
     private async Task<UserPrefixResponse?> GetPrefixAsync(Guid? prefixId)

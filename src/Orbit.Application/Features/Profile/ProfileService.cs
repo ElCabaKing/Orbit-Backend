@@ -13,6 +13,8 @@ public class ProfileService : IProfileService
     private readonly IGenericRepository<UserPrefix> _prefixRepo;
     private readonly IGenericRepository<Follow> _followRepo;
     private readonly IGenericRepository<UserBan> _userBanRepo;
+    private readonly IGenericRepository<Role> _roleRepo;
+    private readonly IGenericRepository<UserRole> _userRoleRepo;
     private readonly ICloudinaryService _cloudinaryService;
 
     public ProfileService(
@@ -20,12 +22,16 @@ public class ProfileService : IProfileService
         IGenericRepository<UserPrefix> prefixRepo,
         IGenericRepository<Follow> followRepo,
         IGenericRepository<UserBan> userBanRepo,
+        IGenericRepository<Role> roleRepo,
+        IGenericRepository<UserRole> userRoleRepo,
         ICloudinaryService cloudinaryService)
     {
         _profileRepo = profileRepo;
         _prefixRepo = prefixRepo;
         _followRepo = followRepo;
         _userBanRepo = userBanRepo;
+        _roleRepo = roleRepo;
+        _userRoleRepo = userRoleRepo;
         _cloudinaryService = cloudinaryService;
     }
 
@@ -203,6 +209,56 @@ public class ProfileService : IProfileService
             Page = page,
             PageSize = pageSize,
         });
+    }
+
+    public async Task<Result> BanUserAsync(Guid moderatorProfileId, string username)
+    {
+        var slug = username.ToLowerInvariant();
+        var target = await _profileRepo.FirstOrDefaultAsync(p => p.UsernameSlug == slug);
+        if (target is null)
+            return Result.Failure(ResponseMessages.ProfileNotFound);
+
+        if (target.Id == moderatorProfileId)
+            return Result.Failure(ResponseMessages.CannotBanYourself);
+
+        if (target.IsBanned)
+            return Result.Failure(ResponseMessages.UserAlreadyBanned);
+
+        var adminRole = await _roleRepo.FirstOrDefaultAsync(r => r.Name == "admin");
+        if (adminRole is not null)
+        {
+            var isAdmin = await _userRoleRepo.FirstOrDefaultAsync(ur =>
+                ur.ProfileId == target.Id && ur.RoleId == adminRole.Id);
+            if (isAdmin is not null)
+                return Result.Failure(ResponseMessages.CannotBanAdmin);
+        }
+
+        target.IsBanned = true;
+        target.BannedAt = DateTime.UtcNow;
+        target.BannedByProfileId = moderatorProfileId;
+        _profileRepo.Update(target);
+        await _profileRepo.SaveChangesAsync();
+
+        return Result.Success(ResponseMessages.BanSuccessful);
+    }
+
+    public async Task<Result> UnbanUserAsync(Guid moderatorProfileId, string username)
+    {
+        var slug = username.ToLowerInvariant();
+        var target = await _profileRepo.FirstOrDefaultAsync(p => p.UsernameSlug == slug);
+        if (target is null)
+            return Result.Failure(ResponseMessages.ProfileNotFound);
+
+        if (!target.IsBanned)
+            return Result.Failure(ResponseMessages.UserNotBanned);
+
+        target.IsBanned = false;
+        target.BannedAt = null;
+        target.BannedByProfileId = null;
+        _profileRepo.Update(target);
+        await _profileRepo.SaveChangesAsync();
+
+        return Result.Success(ResponseMessages.UnbanSuccessful);
     }
 
     public async Task<Result> BlockUserAsync(Guid blockerProfileId, string username)

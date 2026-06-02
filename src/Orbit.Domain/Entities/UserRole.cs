@@ -1,6 +1,8 @@
+using Orbit.Domain.Common;
+
 namespace Orbit.Domain.Entities;
 
-public class UserRole
+public class UserRole : BaseEntity
 {
     public Guid ProfileId { get; set; }
     public Guid RoleId { get; set; }

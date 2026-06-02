@@ -4,5 +4,6 @@ public record AuthResponse(
     string AccessToken,
     string RefreshToken,
     DateTime ExpiresAt,
-    ProfileResponse Profile
+    ProfileResponse Profile,
+    List<string> Roles
 );

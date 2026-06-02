@@ -22,10 +22,14 @@ public class Profile : BaseEntity, ISoftDeletable
     public bool IsPremium { get; set; }
     public bool IsPrivate { get; set; }
     public bool IsActive { get; set; }
+    public bool IsBanned { get; set; }
+    public DateTime? BannedAt { get; set; }
+    public Guid? BannedByProfileId { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 
     public AuthUser AuthUser { get; set; } = null!;
     public UserPrefix? Prefix { get; set; }
+    public Profile? BannedBy { get; set; }
     public ICollection<UserRole> UserRoles { get; set; } = [];
 }

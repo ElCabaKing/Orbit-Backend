@@ -53,6 +53,26 @@ public static class ResponseMessages
     public const string MessageContentRequired = "Message content is required";
     public const string MessageContentMaxLength = "Message content must not exceed 2000 characters";
 
+    // Roles
+    public const string UserAlreadyModerator = "User is already a moderator";
+    public const string UserNotModerator = "User is not a moderator";
+    public const string OnlyAdminCanAssignRoles = "Only admins can assign roles";
+    public const string RoleAssigned = "Role assigned successfully";
+    public const string RoleRemoved = "Role removed successfully";
+
+    // Ban
+    public const string AccountBanned = "Your account has been banned";
+    public const string AccountDeactivated = "Your account has been deactivated";
+    public const string UserAlreadyBanned = "User is already banned";
+    public const string UserNotBanned = "User is not banned";
+    public const string BanSuccessful = "User banned successfully";
+    public const string UnbanSuccessful = "User unbanned successfully";
+    public const string CannotBanYourself = "Cannot ban yourself";
+    public const string CannotBanAdmin = "Cannot ban an admin user";
+
+    // Moderator
+    public const string NotAuthorizedModerator = "Only moderators or admins can perform this action";
+
     // Comments
     public const string ParentCommentNotFound = "Parent comment not found";
     public const string ParentCommentNotInSamePost = "Parent comment does not belong to this post";

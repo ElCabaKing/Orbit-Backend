@@ -16,4 +16,7 @@ public interface IProfileService
     Task<Result> BlockUserAsync(Guid blockerProfileId, string username);
     Task<Result> UnblockUserAsync(Guid blockerProfileId, string username);
     Task<Result<PagedResult<BlockedUserResponse>>> GetBlockedUsersAsync(Guid profileId, int page, int pageSize);
+
+    Task<Result> BanUserAsync(Guid moderatorProfileId, string username);
+    Task<Result> UnbanUserAsync(Guid moderatorProfileId, string username);
 }

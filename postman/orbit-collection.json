@@ -40,6 +40,14 @@
     {
       "key": "messageId",
       "value": ""
+    },
+    {
+      "key": "modTargetUsername",
+      "value": "janedoe"
+    },
+    {
+      "key": "banTargetUsername",
+      "value": "janedoe"
     }
   ],
   "item": [
@@ -1724,6 +1732,146 @@
               "raw": "{{baseUrl}}/api/chats/{{conversationId}}/messages/{{messageId}}",
               "host": ["{{baseUrl}}"],
               "path": ["api", "chats", "{{conversationId}}", "messages", "{{messageId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Assign Moderator",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Moderator assigned\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{modTargetUsername}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/moderators",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "moderators"]
+            }
+          }
+        },
+        {
+          "name": "Remove Moderator",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Moderator removed\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/moderators/{{modTargetUsername}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "moderators", "{{modTargetUsername}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Moderation",
+      "item": [
+        {
+          "name": "Ban User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"User banned\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{banTargetUsername}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/moderator/bans",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "moderator", "bans"]
+            }
+          }
+        },
+        {
+          "name": "Unban User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"User unbanned\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/moderator/bans/{{banTargetUsername}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "moderator", "bans", "{{banTargetUsername}}"]
             }
           }
         }

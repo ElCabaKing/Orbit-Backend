@@ -85,6 +85,21 @@ public class ProfileConfiguration : IEntityTypeConfiguration<Profile>
             .HasColumnName("is_active")
             .HasDefaultValue(true);
 
+        builder.Property(p => p.IsBanned)
+            .HasColumnName("is_banned")
+            .HasDefaultValue(false);
+
+        builder.Property(p => p.BannedAt)
+            .HasColumnName("banned_at");
+
+        builder.Property(p => p.BannedByProfileId)
+            .HasColumnName("banned_by_profile_id");
+
+        builder.HasOne(p => p.BannedBy)
+            .WithMany()
+            .HasForeignKey(p => p.BannedByProfileId)
+            .OnDelete(DeleteBehavior.NoAction);
+
         builder.Property(p => p.CreatedAt)
             .HasColumnName("created_at")
             .HasDefaultValueSql("SYSUTCDATETIME()");

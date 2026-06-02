@@ -17,18 +17,25 @@ public class JwtService : IJwtService
         _options = options;
     }
 
-    public (string token, DateTime expiresAt) GenerateAccessToken(Guid authUserId, Guid profileId, string username)
+    public (string token, DateTime expiresAt) GenerateAccessToken(Guid authUserId, Guid profileId, string username, List<string> roles)
     {
         var expiresAt = DateTime.UtcNow.AddMinutes(_options.AccessTokenExpirationMinutes);
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Secret));
 
-        var claims = new[]
+        var claimsList = new List<Claim>
         {
-            new Claim(JwtRegisteredClaimNames.Sub, authUserId.ToString()),
-            new Claim(ClaimConstants.ProfileId, profileId.ToString()),
-            new Claim(JwtRegisteredClaimNames.UniqueName, username),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new(JwtRegisteredClaimNames.Sub, authUserId.ToString()),
+            new(ClaimConstants.ProfileId, profileId.ToString()),
+            new(JwtRegisteredClaimNames.UniqueName, username),
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         };
+
+        foreach (var role in roles)
+        {
+            claimsList.Add(new Claim(ClaimTypes.Role, role));
+        }
+
+        var claims = claimsList.ToArray();
 
         var token = new JwtSecurityToken(
             issuer: _options.Issuer,

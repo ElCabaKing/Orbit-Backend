@@ -8,6 +8,7 @@ using Orbit.Application.Features.Chats;
 using Orbit.Application.Features.Follows;
 using Orbit.Application.Features.Posts;
 using Orbit.Application.Features.Profiles;
+using Orbit.Application.Features.Roles;
 using Orbit.Application.Interfaces;
 using Orbit.Infrastructure.Extensions;
 using Orbit.Shared.Constants;
@@ -28,6 +29,7 @@ builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<IFollowService, FollowService>();
 builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterValidator>();
 
 var frontendUrl = Environment.GetEnvironmentVariable(EnvironmentConstants.FrontendUrl);
@@ -84,7 +86,15 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod()
               .AllowCredentials());
 });
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy =>
+        policy.RequireRole("admin"));
+
+    options.AddPolicy("ModeratorOrAdmin", policy =>
+        policy.RequireAssertion(context =>
+            context.User.IsInRole("moderator") || context.User.IsInRole("admin")));
+});
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 builder.Services.AddSignalR(options =>
