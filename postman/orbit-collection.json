@@ -99,17 +99,38 @@
             "body": {
               "mode": "formdata",
               "formdata": [
-                { "key": "email", "value": "john@example.com" },
-                { "key": "username", "value": "johndoe" },
-                { "key": "displayName", "value": "John Doe" },
-                { "key": "password", "value": "Password123" },
-                { "key": "bio", "value": "Software developer and coffee enthusiast" }
+                {
+                  "key": "email",
+                  "value": "john@example.com"
+                },
+                {
+                  "key": "username",
+                  "value": "johndoe"
+                },
+                {
+                  "key": "displayName",
+                  "value": "John Doe"
+                },
+                {
+                  "key": "password",
+                  "value": "Password123"
+                },
+                {
+                  "key": "bio",
+                  "value": "Software developer and coffee enthusiast"
+                }
               ]
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/register",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "auth", "register"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
             }
           }
         },
@@ -137,16 +158,34 @@
             "body": {
               "mode": "formdata",
               "formdata": [
-                { "key": "email", "value": "john@example.com" },
-                { "key": "username", "value": "janedoe" },
-                { "key": "displayName", "value": "Jane Doe" },
-                { "key": "password", "value": "Password456" }
+                {
+                  "key": "email",
+                  "value": "john@example.com"
+                },
+                {
+                  "key": "username",
+                  "value": "janedoe"
+                },
+                {
+                  "key": "displayName",
+                  "value": "Jane Doe"
+                },
+                {
+                  "key": "password",
+                  "value": "Password456"
+                }
               ]
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/register",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "auth", "register"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
             }
           }
         },
@@ -174,16 +213,34 @@
             "body": {
               "mode": "formdata",
               "formdata": [
-                { "key": "email", "value": "jane@example.com" },
-                { "key": "username", "value": "johndoe" },
-                { "key": "displayName", "value": "Jane Doe" },
-                { "key": "password", "value": "Password456" }
+                {
+                  "key": "email",
+                  "value": "jane@example.com"
+                },
+                {
+                  "key": "username",
+                  "value": "johndoe"
+                },
+                {
+                  "key": "displayName",
+                  "value": "Jane Doe"
+                },
+                {
+                  "key": "password",
+                  "value": "Password456"
+                }
               ]
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/register",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "auth", "register"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
             }
           }
         },
@@ -212,16 +269,34 @@
             "body": {
               "mode": "formdata",
               "formdata": [
-                { "key": "email", "value": "not-an-email" },
-                { "key": "username", "value": "a" },
-                { "key": "displayName", "value": "" },
-                { "key": "password", "value": "short" }
+                {
+                  "key": "email",
+                  "value": "not-an-email"
+                },
+                {
+                  "key": "username",
+                  "value": "a"
+                },
+                {
+                  "key": "displayName",
+                  "value": ""
+                },
+                {
+                  "key": "password",
+                  "value": "short"
+                }
               ]
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/register",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "auth", "register"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
             }
           }
         },
@@ -233,18 +308,43 @@
             "body": {
               "mode": "formdata",
               "formdata": [
-                { "key": "email", "value": "alice@example.com" },
-                { "key": "username", "value": "alicewonder" },
-                { "key": "displayName", "value": "Alice Wonderland" },
-                { "key": "password", "value": "SecurePass1" },
-                { "key": "bio", "value": "Curiouser and curiouser!" },
-                { "key": "profilePicture", "type": "file", "src": "avatar.jpg" }
+                {
+                  "key": "email",
+                  "value": "alice@example.com"
+                },
+                {
+                  "key": "username",
+                  "value": "alicewonder"
+                },
+                {
+                  "key": "displayName",
+                  "value": "Alice Wonderland"
+                },
+                {
+                  "key": "password",
+                  "value": "SecurePass1"
+                },
+                {
+                  "key": "bio",
+                  "value": "Curiouser and curiouser!"
+                },
+                {
+                  "key": "profilePicture",
+                  "type": "file",
+                  "src": "avatar.jpg"
+                }
               ]
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/register",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "auth", "register"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
             }
           }
         },
@@ -270,7 +370,10 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -278,8 +381,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "auth", "login"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
             }
           }
         },
@@ -304,7 +413,10 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -312,8 +424,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "auth", "login"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
             }
           }
         },
@@ -334,7 +452,10 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -342,8 +463,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "auth", "login"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
             }
           }
         },
@@ -370,7 +497,10 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -378,8 +508,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/refresh",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "auth", "refresh"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "refresh"
+              ]
             }
           }
         },
@@ -400,7 +536,10 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -408,8 +547,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/refresh",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "auth", "refresh"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "refresh"
+              ]
             }
           }
         },
@@ -434,7 +579,10 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -442,8 +590,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/logout",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "auth", "logout"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
             }
           }
         },
@@ -469,12 +623,21 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/auth/me",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "auth", "me"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
             }
           }
         },
@@ -499,7 +662,10 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -507,8 +673,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/forgot-password",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "auth", "forgot-password"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "forgot-password"
+              ]
             }
           }
         },
@@ -533,7 +705,10 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -541,8 +716,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/reset-password",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "auth", "reset-password"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "reset-password"
+              ]
             }
           }
         },
@@ -567,7 +748,10 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -575,8 +759,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/reset-password",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "auth", "reset-password"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "reset-password"
+              ]
             }
           }
         }
@@ -608,8 +798,14 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/profiles/johndoe",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "profiles", "johndoe"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profiles",
+                "johndoe"
+              ]
             }
           }
         },
@@ -630,8 +826,14 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -639,8 +841,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/profile",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "profile"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
             }
           }
         },
@@ -649,18 +856,31 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "body": {
               "mode": "formdata",
               "formdata": [
-                { "key": "file", "type": "file", "src": "avatar.jpg" }
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "avatar.jpg"
+                }
               ]
             },
             "url": {
               "raw": "{{baseUrl}}/api/profile/avatar",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "profile", "avatar"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profile",
+                "avatar"
+              ]
             }
           }
         },
@@ -669,12 +889,21 @@
           "request": {
             "method": "DELETE",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/profile/avatar",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "profile", "avatar"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profile",
+                "avatar"
+              ]
             }
           }
         },
@@ -683,18 +912,31 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "body": {
               "mode": "formdata",
               "formdata": [
-                { "key": "file", "type": "file", "src": "banner.jpg" }
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "banner.jpg"
+                }
               ]
             },
             "url": {
               "raw": "{{baseUrl}}/api/profile/banner",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "profile", "banner"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profile",
+                "banner"
+              ]
             }
           }
         },
@@ -703,12 +945,21 @@
           "request": {
             "method": "DELETE",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/profile/banner",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "profile", "banner"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profile",
+                "banner"
+              ]
             }
           }
         },
@@ -735,16 +986,34 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/profiles/search?q=johndoe&page=1&pageSize=20",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "profiles", "search"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profiles",
+                "search"
+              ],
               "query": [
-                { "key": "q", "value": "johndoe" },
-                { "key": "page", "value": "1" },
-                { "key": "pageSize", "value": "20" }
+                {
+                  "key": "q",
+                  "value": "johndoe"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
               ]
             }
           }
@@ -770,12 +1039,22 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/profiles/{{targetUsername}}/block",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "profiles", "{{targetUsername}}", "block"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profiles",
+                "{{targetUsername}}",
+                "block"
+              ]
             }
           }
         },
@@ -800,12 +1079,22 @@
           "request": {
             "method": "DELETE",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/profiles/{{targetUsername}}/block",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "profiles", "{{targetUsername}}", "block"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profiles",
+                "{{targetUsername}}",
+                "block"
+              ]
             }
           }
         },
@@ -832,15 +1121,30 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/profile/blocked?page=1&pageSize=20",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "profile", "blocked"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profile",
+                "blocked"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "pageSize", "value": "20" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
               ]
             }
           }
@@ -867,12 +1171,21 @@
             "description": "This test simulates a blocked user trying to view the blocker's profile. First, login as the blocker user, block {{targetUsername}}, then login as {{targetUsername}} and run this request with the blocker's username. Expected: 404 with isSuccess: false.",
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/profiles/{{blockerUsername}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "profiles", "{{blockerUsername}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profiles",
+                "{{blockerUsername}}"
+              ]
             }
           }
         },
@@ -902,16 +1215,34 @@
             "description": "Run this after being blocked by another user. When logged in as the blocked user, searching for the blocker's username should not return the blocker's profile.",
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/profiles/search?q={{blockerUsername}}&page=1&pageSize=20",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "profiles", "search"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profiles",
+                "search"
+              ],
               "query": [
-                { "key": "q", "value": "{{blockerUsername}}" },
-                { "key": "page", "value": "1" },
-                { "key": "pageSize", "value": "20" }
+                {
+                  "key": "q",
+                  "value": "{{blockerUsername}}"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
               ]
             }
           }
@@ -942,18 +1273,29 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "body": {
               "mode": "formdata",
               "formdata": [
-                { "key": "content", "value": "Hello World! This is my first post on Orbit!" }
+                {
+                  "key": "content",
+                  "value": "Hello World! This is my first post on Orbit!"
+                }
               ]
             },
             "url": {
               "raw": "{{baseUrl}}/api/posts",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "posts"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts"
+              ]
             }
           }
         },
@@ -979,19 +1321,34 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "body": {
               "mode": "formdata",
               "formdata": [
-                { "key": "content", "value": "Check out this cool media!" },
-                { "key": "media", "type": "file", "src": "post-image.jpg" }
+                {
+                  "key": "content",
+                  "value": "Check out this cool media!"
+                },
+                {
+                  "key": "media",
+                  "type": "file",
+                  "src": "post-image.jpg"
+                }
               ]
             },
             "url": {
               "raw": "{{baseUrl}}/api/posts",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "posts"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts"
+              ]
             }
           }
         },
@@ -1017,20 +1374,39 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "body": {
               "mode": "formdata",
               "formdata": [
-                { "key": "content", "value": "A post with multiple images!" },
-                { "key": "media", "type": "file", "src": "post-image-1.jpg" },
-                { "key": "media", "type": "file", "src": "post-image-2.jpg" }
+                {
+                  "key": "content",
+                  "value": "A post with multiple images!"
+                },
+                {
+                  "key": "media",
+                  "type": "file",
+                  "src": "post-image-1.jpg"
+                },
+                {
+                  "key": "media",
+                  "type": "file",
+                  "src": "post-image-2.jpg"
+                }
               ]
             },
             "url": {
               "raw": "{{baseUrl}}/api/posts",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "posts"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts"
+              ]
             }
           }
         },
@@ -1058,8 +1434,14 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/posts/{{postId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "posts", "{{postId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts",
+                "{{postId}}"
+              ]
             }
           }
         },
@@ -1088,11 +1470,23 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/posts/general?page=1&pageSize=20",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "posts", "general"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts",
+                "general"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "pageSize", "value": "20" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
               ]
             }
           }
@@ -1120,15 +1514,30 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/posts/following?page=1&pageSize=20",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "posts", "following"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts",
+                "following"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "pageSize", "value": "20" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
               ]
             }
           }
@@ -1155,11 +1564,24 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/profiles/johndoe/posts?page=1&pageSize=20",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "profiles", "johndoe", "posts"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profiles",
+                "johndoe",
+                "posts"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "pageSize", "value": "20" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
               ]
             }
           }
@@ -1181,19 +1603,36 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "body": {
               "mode": "formdata",
               "formdata": [
-                { "key": "content", "value": "Updated post content!" },
-                { "key": "media", "type": "file", "src": "replacement-image.jpg", "description": "Optional: replace all existing media with new files" }
+                {
+                  "key": "content",
+                  "value": "Updated post content!"
+                },
+                {
+                  "key": "media",
+                  "type": "file",
+                  "src": "replacement-image.jpg",
+                  "description": "Optional: replace all existing media with new files"
+                }
               ]
             },
             "url": {
               "raw": "{{baseUrl}}/api/posts/{{postId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "posts", "{{postId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts",
+                "{{postId}}"
+              ]
             }
           }
         },
@@ -1219,12 +1658,22 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/posts/{{postId}}/like",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "posts", "{{postId}}", "like"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts",
+                "{{postId}}",
+                "like"
+              ]
             }
           }
         },
@@ -1250,12 +1699,114 @@
           "request": {
             "method": "DELETE",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/posts/{{postId}}/like",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "posts", "{{postId}}", "like"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts",
+                "{{postId}}",
+                "like"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Repost Post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test(\"Response has repost data\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.eql(true);",
+                  "    pm.expect(json.data.isRepost).to.eql(true);",
+                  "    pm.expect(json.data.originalPostId).to.eql(pm.variables.get(\"postId\"));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/{{postId}}/repost",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts",
+                "{{postId}}",
+                "repost"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Thread Post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test(\"Response has thread data\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.isSuccess).to.eql(true);",
+                  "    pm.expect(json.data.isThread).to.eql(true);",
+                  "    pm.expect(json.data.originalPostId).to.eql(pm.variables.get(\"postId\"));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"content\": \"This is my thread continuation\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/{{postId}}/thread",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts",
+                "{{postId}}",
+                "thread"
+              ]
             }
           }
         },
@@ -1283,12 +1834,27 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/posts/search?q=Hello&page=1&pageSize=20",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "posts", "search"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts",
+                "search"
+              ],
               "query": [
-                { "key": "q", "value": "Hello" },
-                { "key": "page", "value": "1" },
-                { "key": "pageSize", "value": "20" }
+                {
+                  "key": "q",
+                  "value": "Hello"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
               ]
             }
           }
@@ -1314,8 +1880,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -1323,8 +1895,15 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/posts/{{postId}}/comments",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "posts", "{{postId}}", "comments"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts",
+                "{{postId}}",
+                "comments"
+              ]
             }
           }
         },
@@ -1349,8 +1928,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -1358,8 +1943,15 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/posts/{{postId}}/comments",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "posts", "{{postId}}", "comments"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts",
+                "{{postId}}",
+                "comments"
+              ]
             }
           }
         },
@@ -1388,21 +1980,34 @@
               }
             }
           ],
-    "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{accessToken}}"
-          }
-        ],
-        "url": {
-          "raw": "{{baseUrl}}/api/posts/{{postId}}/comments?page=1&pageSize=20",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "posts", "{{postId}}", "comments"],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/{{postId}}/comments?page=1&pageSize=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts",
+                "{{postId}}",
+                "comments"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "pageSize", "value": "20" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
               ]
             }
           }
@@ -1430,21 +2035,34 @@
               }
             }
           ],
-    "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": "Bearer {{accessToken}}"
-          }
-        ],
-        "url": {
-          "raw": "{{baseUrl}}/api/comments/{{commentId}}/replies?page=1&pageSize=20",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "comments", "{{commentId}}", "replies"],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/comments/{{commentId}}/replies?page=1&pageSize=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "comments",
+                "{{commentId}}",
+                "replies"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "pageSize", "value": "20" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
               ]
             }
           }
@@ -1471,12 +2089,22 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/comments/{{commentId}}/like",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "comments", "{{commentId}}", "like"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "comments",
+                "{{commentId}}",
+                "like"
+              ]
             }
           }
         },
@@ -1502,12 +2130,22 @@
           "request": {
             "method": "DELETE",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/comments/{{commentId}}/like",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "comments", "{{commentId}}", "like"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "comments",
+                "{{commentId}}",
+                "like"
+              ]
             }
           }
         },
@@ -1528,12 +2166,21 @@
           "request": {
             "method": "DELETE",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/comments/{{commentId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "comments", "{{commentId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "comments",
+                "{{commentId}}"
+              ]
             }
           }
         },
@@ -1554,12 +2201,21 @@
           "request": {
             "method": "DELETE",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/posts/{{postId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "posts", "{{postId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts",
+                "{{postId}}"
+              ]
             }
           }
         }
@@ -1589,12 +2245,22 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/profiles/{{targetUsername}}/follow",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "profiles", "{{targetUsername}}", "follow"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profiles",
+                "{{targetUsername}}",
+                "follow"
+              ]
             }
           }
         },
@@ -1621,11 +2287,24 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/profiles/johndoe/followers?page=1&pageSize=20",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "profiles", "johndoe", "followers"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profiles",
+                "johndoe",
+                "followers"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "pageSize", "value": "20" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
               ]
             }
           }
@@ -1653,11 +2332,24 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/profiles/johndoe/following?page=1&pageSize=20",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "profiles", "johndoe", "following"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profiles",
+                "johndoe",
+                "following"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "pageSize", "value": "20" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
               ]
             }
           }
@@ -1683,12 +2375,22 @@
           "request": {
             "method": "DELETE",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/profiles/{{targetUsername}}/follow",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "profiles", "{{targetUsername}}", "follow"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profiles",
+                "{{targetUsername}}",
+                "follow"
+              ]
             }
           }
         },
@@ -1715,12 +2417,22 @@
             "description": "Run this after being blocked by {{blockerUsername}}. The blocked user should not be able to follow the user who blocked them.",
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/profiles/{{blockerUsername}}/follow",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "profiles", "{{blockerUsername}}", "follow"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profiles",
+                "{{blockerUsername}}",
+                "follow"
+              ]
             }
           }
         },
@@ -1747,12 +2459,22 @@
             "description": "Run this after blocking {{targetUsername}}. The blocker should not be able to follow the user they blocked.",
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/profiles/{{targetUsername}}/follow",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "profiles", "{{targetUsername}}", "follow"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profiles",
+                "{{targetUsername}}",
+                "follow"
+              ]
             }
           }
         }
@@ -1782,8 +2504,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -1791,8 +2519,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/chats",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "chats"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "chats"
+              ]
             }
           }
         },
@@ -1819,15 +2552,29 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/chats?page=1&pageSize=20",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "chats"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "chats"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "pageSize", "value": "20" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
               ]
             }
           }
@@ -1853,15 +2600,31 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/chats/{{conversationId}}/messages?page=1&pageSize=50",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "chats", "{{conversationId}}", "messages"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "chats",
+                "{{conversationId}}",
+                "messages"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "pageSize", "value": "50" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "50"
+                }
               ]
             }
           }
@@ -1892,17 +2655,30 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"content\": \"Hello from Postman! 👋\"\n}"
+              "raw": "{\n  \"content\": \"Hello from Postman! \ud83d\udc4b\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/chats/{{conversationId}}/messages",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "chats", "{{conversationId}}", "messages"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "chats",
+                "{{conversationId}}",
+                "messages"
+              ]
             }
           }
         },
@@ -1927,12 +2703,23 @@
           "request": {
             "method": "DELETE",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/chats/{{conversationId}}/messages/{{messageId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "chats", "{{conversationId}}", "messages", "{{messageId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "chats",
+                "{{conversationId}}",
+                "messages",
+                "{{messageId}}"
+              ]
             }
           }
         }
@@ -1962,8 +2749,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -1971,8 +2764,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/admin/moderators",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "admin", "moderators"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "moderators"
+              ]
             }
           }
         },
@@ -1997,12 +2796,22 @@
           "request": {
             "method": "DELETE",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/admin/moderators/{{modTargetUsername}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "admin", "moderators", "{{modTargetUsername}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "moderators",
+                "{{modTargetUsername}}"
+              ]
             }
           }
         }
@@ -2032,8 +2841,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -2041,8 +2856,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/moderator/bans",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "moderator", "bans"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "moderator",
+                "bans"
+              ]
             }
           }
         },
@@ -2067,12 +2888,22 @@
           "request": {
             "method": "DELETE",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/moderator/bans/{{banTargetUsername}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "moderator", "bans", "{{banTargetUsername}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "moderator",
+                "bans",
+                "{{banTargetUsername}}"
+              ]
             }
           }
         }
@@ -2103,12 +2934,21 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/saved-posts/{{postId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "saved-posts", "{{postId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "saved-posts",
+                "{{postId}}"
+              ]
             }
           }
         },
@@ -2134,12 +2974,21 @@
           "request": {
             "method": "DELETE",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/saved-posts/{{postId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "saved-posts", "{{postId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "saved-posts",
+                "{{postId}}"
+              ]
             }
           }
         },
@@ -2166,15 +3015,29 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/saved-posts?page=1&pageSize=20",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "saved-posts"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "saved-posts"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "pageSize", "value": "20" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
               ]
             }
           }
@@ -2206,8 +3069,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -2215,8 +3084,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/communities",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "communities"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities"
+              ]
             }
           }
         },
@@ -2243,8 +3117,14 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/communities/{{communitySlug}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "communities", "{{communitySlug}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "{{communitySlug}}"
+              ]
             }
           }
         },
@@ -2269,8 +3149,14 @@
           "request": {
             "method": "PUT",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -2278,8 +3164,14 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/communities/{{communitySlug}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "communities", "{{communitySlug}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "{{communitySlug}}"
+              ]
             }
           }
         },
@@ -2307,12 +3199,26 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/communities?q=my&page=1&pageSize=20",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "communities"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities"
+              ],
               "query": [
-                { "key": "q", "value": "my" },
-                { "key": "page", "value": "1" },
-                { "key": "pageSize", "value": "20" }
+                {
+                  "key": "q",
+                  "value": "my"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
               ]
             }
           }
@@ -2339,15 +3245,30 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/communities/my?page=1&pageSize=20",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "communities", "my"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "my"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "pageSize", "value": "20" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
               ]
             }
           }
@@ -2373,12 +3294,22 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/communities/{{communitySlug}}/join",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "communities", "{{communitySlug}}", "join"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "{{communitySlug}}",
+                "join"
+              ]
             }
           }
         },
@@ -2403,12 +3334,22 @@
           "request": {
             "method": "DELETE",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/communities/{{communitySlug}}/leave",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "communities", "{{communitySlug}}", "leave"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "{{communitySlug}}",
+                "leave"
+              ]
             }
           }
         },
@@ -2435,15 +3376,31 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/communities/{{communitySlug}}/members?page=1&pageSize=20",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "communities", "{{communitySlug}}", "members"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "{{communitySlug}}",
+                "members"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "pageSize", "value": "20" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
               ]
             }
           }
@@ -2469,12 +3426,23 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/communities/{{communitySlug}}/co-leaders/janedoe",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "communities", "{{communitySlug}}", "co-leaders", "janedoe"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "{{communitySlug}}",
+                "co-leaders",
+                "janedoe"
+              ]
             }
           }
         },
@@ -2499,12 +3467,23 @@
           "request": {
             "method": "DELETE",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/communities/{{communitySlug}}/co-leaders/janedoe",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "communities", "{{communitySlug}}", "co-leaders", "janedoe"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "{{communitySlug}}",
+                "co-leaders",
+                "janedoe"
+              ]
             }
           }
         },
@@ -2529,12 +3508,23 @@
           "request": {
             "method": "DELETE",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/communities/{{communitySlug}}/members/{{targetProfileId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "communities", "{{communitySlug}}", "members", "{{targetProfileId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "{{communitySlug}}",
+                "members",
+                "{{targetProfileId}}"
+              ]
             }
           }
         },
@@ -2559,12 +3549,22 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/communities/{{communitySlug}}/join-request",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "communities", "{{communitySlug}}", "join-request"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "{{communitySlug}}",
+                "join-request"
+              ]
             }
           }
         },
@@ -2591,15 +3591,31 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/communities/{{communitySlug}}/join-requests?page=1&pageSize=20",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "communities", "{{communitySlug}}", "join-requests"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "{{communitySlug}}",
+                "join-requests"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "pageSize", "value": "20" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
               ]
             }
           }
@@ -2627,15 +3643,31 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/communities/join-requests/my?page=1&pageSize=20",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "communities", "join-requests", "my"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "join-requests",
+                "my"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "pageSize", "value": "20" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
               ]
             }
           }
@@ -2661,8 +3693,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -2670,8 +3708,15 @@
             },
             "url": {
               "raw": "{{baseUrl}}/api/communities/{{communitySlug}}/invitations",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "communities", "{{communitySlug}}", "invitations"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "{{communitySlug}}",
+                "invitations"
+              ]
             }
           }
         },
@@ -2698,15 +3743,31 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/communities/{{communitySlug}}/invitations?page=1&pageSize=20",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "communities", "{{communitySlug}}", "invitations"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "{{communitySlug}}",
+                "invitations"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "pageSize", "value": "20" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
               ]
             }
           }
@@ -2734,15 +3795,31 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/communities/invitations/pending?page=1&pageSize=20",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "communities", "invitations", "pending"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "invitations",
+                "pending"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "pageSize", "value": "20" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
               ]
             }
           }
@@ -2768,12 +3845,21 @@
           "request": {
             "method": "DELETE",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/communities/{{communitySlug}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "communities", "{{communitySlug}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "{{communitySlug}}"
+              ]
             }
           }
         },
@@ -2799,18 +3885,31 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "body": {
               "mode": "formdata",
               "formdata": [
-                { "key": "content", "value": "Hello from the community!" }
+                {
+                  "key": "content",
+                  "value": "Hello from the community!"
+                }
               ]
             },
             "url": {
               "raw": "{{baseUrl}}/api/communities/{{communitySlug}}/posts",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "communities", "{{communitySlug}}", "posts"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "{{communitySlug}}",
+                "posts"
+              ]
             }
           }
         },
@@ -2838,11 +3937,24 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/communities/{{communitySlug}}/posts?page=1&pageSize=20",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "communities", "{{communitySlug}}", "posts"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "{{communitySlug}}",
+                "posts"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "pageSize", "value": "20" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
               ]
             }
           }
@@ -2873,12 +3985,23 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/communities/join-requests/{{joinRequestId}}/approve",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "communities", "join-requests", "{{joinRequestId}}", "approve"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "join-requests",
+                "{{joinRequestId}}",
+                "approve"
+              ]
             }
           }
         },
@@ -2903,12 +4026,23 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/communities/join-requests/{{joinRequestId}}/reject",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "communities", "join-requests", "{{joinRequestId}}", "reject"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "join-requests",
+                "{{joinRequestId}}",
+                "reject"
+              ]
             }
           }
         },
@@ -2933,12 +4067,23 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/communities/invitations/{{invitationId}}/accept",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "communities", "invitations", "{{invitationId}}", "accept"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "invitations",
+                "{{invitationId}}",
+                "accept"
+              ]
             }
           }
         },
@@ -2963,12 +4108,23 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/api/communities/invitations/{{invitationId}}/decline",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "communities", "invitations", "{{invitationId}}", "decline"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "invitations",
+                "{{invitationId}}",
+                "decline"
+              ]
             }
           }
         }

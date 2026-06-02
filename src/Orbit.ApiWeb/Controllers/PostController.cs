@@ -189,6 +189,54 @@ public class PostController : ControllerBase
     }
 
     [Authorize]
+    [HttpPost("api/posts/{id:guid}/repost")]
+    [EndpointSummary("Repostear publicación")]
+    [EndpointDescription("Comparte una publicación original sin mensaje adicional. Aparece en tu perfil como repost.")]
+    [ProducesResponseType<Result<PostResponse>>(StatusCodes.Status201Created)]
+    [ProducesResponseType<Result>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Repost(Guid id)
+    {
+        var authUserId = GetAuthUserId();
+        if (authUserId is null)
+            return Unauthorized(new { isSuccess = false, message = ResponseMessages.InvalidToken });
+
+        var result = await _postService.RepostPostAsync(authUserId.Value, id);
+
+        if (!result.IsSuccess)
+            return BadRequest(new { isSuccess = false, message = result.Message });
+
+        return CreatedAtAction(nameof(Repost), null, new { isSuccess = true, data = result.Data });
+    }
+
+    [Authorize]
+    [HttpPost("api/posts/{id:guid}/thread")]
+    [EndpointSummary("Crear hilo")]
+    [EndpointDescription("Crea un hilo a partir de una publicación existente, con un mensaje adicional.")]
+    [ProducesResponseType<Result<PostResponse>>(StatusCodes.Status201Created)]
+    [ProducesResponseType<Result>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Thread(Guid id, [FromBody] CreateThreadRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Content))
+            return BadRequest(new { isSuccess = false, message = "Thread content is required" });
+
+        if (request.Content.Length > 1000)
+            return BadRequest(new { isSuccess = false, message = "Thread content must not exceed 1000 characters" });
+
+        var authUserId = GetAuthUserId();
+        if (authUserId is null)
+            return Unauthorized(new { isSuccess = false, message = ResponseMessages.InvalidToken });
+
+        var result = await _postService.ThreadPostAsync(authUserId.Value, id, request.Content);
+
+        if (!result.IsSuccess)
+            return BadRequest(new { isSuccess = false, message = result.Message });
+
+        return CreatedAtAction(nameof(Thread), null, new { isSuccess = true, data = result.Data });
+    }
+
+    [Authorize]
     [HttpPost("api/posts/{id:guid}/like")]
     [EndpointSummary("Dar like")]
     [EndpointDescription("Da like a una publicación.")]

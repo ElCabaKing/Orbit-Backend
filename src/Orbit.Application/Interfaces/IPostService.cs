@@ -24,4 +24,6 @@ public interface IPostService
     Task<Result<SaveResponse>> SavePostAsync(Guid profileId, Guid postId);
     Task<Result<SaveResponse>> UnsavePostAsync(Guid profileId, Guid postId);
     Task<Result<PagedResult<PostResponse>>> GetSavedPostsAsync(Guid profileId, int page, int pageSize);
+    Task<Result<PostResponse>> RepostPostAsync(Guid authUserId, Guid postId);
+    Task<Result<PostResponse>> ThreadPostAsync(Guid authUserId, Guid postId, string content);
 }

@@ -1083,7 +1083,11 @@ public class CommunityService : ICommunityService
             isLiked,
             isSaved,
             post.CreatedAt,
-            post.UpdatedAt
+            post.UpdatedAt,
+            post.IsRepost,
+            post.IsThread,
+            post.OriginalPostId,
+            null
         );
     }
 

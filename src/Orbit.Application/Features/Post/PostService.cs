@@ -147,7 +147,16 @@ public class PostService : IPostService
         var media = await _mediaRepo.GetListAsync(m => m.PostId == postId);
 
         var author = BuildAuthorResponse(post.Profile, isFollowing);
-        return Result<PostResponse>.Success(BuildPostResponse(post, author, isLiked, isSaved, media));
+
+        PostAuthorResponse? originalAuthor = null;
+        if (post.OriginalPostId.HasValue)
+        {
+            var originalPost = await _postRepo.FirstOrDefaultAsync(p => p.Id == post.OriginalPostId.Value, p => p.Profile);
+            if (originalPost?.Profile is not null)
+                originalAuthor = BuildAuthorResponse(originalPost.Profile);
+        }
+
+        return Result<PostResponse>.Success(BuildPostResponse(post, author, isLiked, isSaved, media, originalAuthor));
     }
 
     public async Task<Result<PagedResult<PostResponse>>> GetGeneralPostsAsync(Guid? currentProfileId, int page, int pageSize)
@@ -502,6 +511,85 @@ public class PostService : IPostService
         return await BuildPagedPostResponse(orderedPosts, totalCount, page, pageSize, profileId);
     }
 
+    public async Task<Result<PostResponse>> RepostPostAsync(Guid authUserId, Guid postId)
+    {
+        var profile = await _profileRepo.FirstOrDefaultAsync(p => p.AuthUserId == authUserId);
+        if (profile is null)
+            return Result<PostResponse>.Failure(ResponseMessages.ProfileNotFound);
+
+        var originalPost = await _postRepo.FirstOrDefaultAsync(p => p.Id == postId, p => p.Profile);
+        if (originalPost is null)
+            return Result<PostResponse>.Failure(ResponseMessages.PostNotFound);
+
+        if (originalPost.ProfileId == profile.Id)
+            return Result<PostResponse>.Failure(ResponseMessages.CannotRepostYourself);
+
+        if (originalPost.IsThread)
+            return Result<PostResponse>.Failure(ResponseMessages.CannotRepostThread);
+
+        var existingRepost = await _postRepo.FirstOrDefaultAsync(p =>
+            p.ProfileId == profile.Id && p.OriginalPostId == postId && p.IsRepost);
+        if (existingRepost is not null)
+            return Result<PostResponse>.Failure(ResponseMessages.AlreadyReposted);
+
+        var repost = new Orbit.Domain.Entities.Post
+        {
+            Id = Guid.NewGuid(),
+            ProfileId = profile.Id,
+            Content = string.Empty,
+            IsActive = true,
+            IsRepost = true,
+            OriginalPostId = postId,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+        };
+
+        await _postRepo.CreateAsync(repost);
+
+        profile.PostsCount++;
+        profile.UpdatedAt = DateTime.UtcNow;
+        _profileRepo.Update(profile);
+        await _profileRepo.SaveChangesAsync();
+
+        var author = BuildAuthorResponse(profile);
+        var originalAuthor = BuildAuthorResponse(originalPost.Profile);
+        return Result<PostResponse>.Success(BuildPostResponse(repost, author, false, false, [], originalAuthor));
+    }
+
+    public async Task<Result<PostResponse>> ThreadPostAsync(Guid authUserId, Guid postId, string content)
+    {
+        var profile = await _profileRepo.FirstOrDefaultAsync(p => p.AuthUserId == authUserId);
+        if (profile is null)
+            return Result<PostResponse>.Failure(ResponseMessages.ProfileNotFound);
+
+        var parentPost = await _postRepo.FirstOrDefaultAsync(p => p.Id == postId, p => p.Profile);
+        if (parentPost is null)
+            return Result<PostResponse>.Failure(ResponseMessages.PostNotFound);
+
+        var thread = new Orbit.Domain.Entities.Post
+        {
+            Id = Guid.NewGuid(),
+            ProfileId = profile.Id,
+            Content = content,
+            IsActive = true,
+            IsThread = true,
+            OriginalPostId = postId,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+        };
+
+        await _postRepo.CreateAsync(thread);
+
+        profile.PostsCount++;
+        profile.UpdatedAt = DateTime.UtcNow;
+        _profileRepo.Update(profile);
+        await _profileRepo.SaveChangesAsync();
+
+        var author = BuildAuthorResponse(profile);
+        var originalAuthor = BuildAuthorResponse(parentPost.Profile);
+        return Result<PostResponse>.Success(BuildPostResponse(thread, author, false, false, [], originalAuthor));
+    }
+
     public async Task<Result<CommentResponse>> CreateCommentAsync(Guid profileId, Guid postId, string content, Guid? parentCommentId = null)
     {
         var post = await _postRepo.FirstOrDefaultAsync(p => p.Id == postId);
@@ -784,6 +872,26 @@ public class PostService : IPostService
             mediaMap = allMedia.GroupBy(m => m.PostId).ToDictionary(g => g.Key, g => g.ToList());
         }
 
+        Dictionary<Guid, PostAuthorResponse> originalAuthorMap = [];
+        var originalPostIds = posts
+            .Where(p => p.OriginalPostId.HasValue)
+            .Select(p => p.OriginalPostId!.Value)
+            .Distinct()
+            .ToList();
+
+        if (originalPostIds.Count > 0)
+        {
+            var originalPosts = await _postRepo.GetListAsync(p => originalPostIds.Contains(p.Id));
+            var originalProfileIds = originalPosts.Select(p => p.ProfileId).Distinct().ToList();
+            var originalProfileMap = await BatchLoadProfilesAsync(originalProfileIds);
+
+            foreach (var op in originalPosts)
+            {
+                if (originalProfileMap.TryGetValue(op.ProfileId, out var opProfile))
+                    originalAuthorMap[op.Id] = BuildAuthorResponse(opProfile);
+            }
+        }
+
         var items = posts.Select(p =>
         {
             var prof = profileMap.GetValueOrDefault(p.ProfileId);
@@ -792,7 +900,10 @@ public class PostService : IPostService
                 ? BuildAuthorResponse(prof, isFollowing)
                 : new PostAuthorResponse(p.ProfileId, "Unknown", "Unknown", null, false);
             var media = mediaMap.GetValueOrDefault(p.Id) ?? [];
-            return BuildPostResponse(p, author, likedPostIds.Contains(p.Id), savedPostIds.Contains(p.Id), media);
+            var originalAuthor = p.OriginalPostId.HasValue
+                ? originalAuthorMap.GetValueOrDefault(p.OriginalPostId.Value)
+                : null;
+            return BuildPostResponse(p, author, likedPostIds.Contains(p.Id), savedPostIds.Contains(p.Id), media, originalAuthor);
         }).ToList();
 
         return Result<PagedResult<PostResponse>>.Success(new PagedResult<PostResponse>
@@ -822,7 +933,7 @@ public class PostService : IPostService
         );
     }
 
-    private static PostResponse BuildPostResponse(Orbit.Domain.Entities.Post post, PostAuthorResponse author, bool isLiked, bool isSaved, List<PostMedia> media)
+    private static PostResponse BuildPostResponse(Orbit.Domain.Entities.Post post, PostAuthorResponse author, bool isLiked, bool isSaved, List<PostMedia> media, PostAuthorResponse? originalAuthor = null)
     {
         return new PostResponse(
             post.Id,
@@ -844,7 +955,11 @@ public class PostService : IPostService
             isLiked,
             isSaved,
             post.CreatedAt,
-            post.UpdatedAt
+            post.UpdatedAt,
+            post.IsRepost,
+            post.IsThread,
+            post.OriginalPostId,
+            originalAuthor
         );
     }
 

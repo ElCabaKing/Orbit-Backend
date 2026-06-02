@@ -93,6 +93,14 @@ public static class ResponseMessages
     public const string BlockSuccessful = "User blocked successfully";
     public const string UnblockSuccessful = "User unblocked successfully";
 
+    // Repost & Thread
+    public const string CannotRepostYourself = "Cannot repost your own post";
+    public const string CannotRepostThread = "Cannot repost a thread";
+    public const string AlreadyReposted = "You have already reposted this post";
+    public const string CannotThreadYourself = "Cannot create a thread on your own post";
+    public const string RepostSuccessful = "Post reposted successfully";
+    public const string ThreadCreated = "Thread created successfully";
+
     // Community
     public const string CommunityNotFound = "Community not found";
     public const string CommunityCreated = "Community created successfully";

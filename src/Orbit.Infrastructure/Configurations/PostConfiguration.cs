@@ -36,6 +36,17 @@ public class PostConfiguration : IEntityTypeConfiguration<Post>
             .HasColumnName("save_count")
             .HasDefaultValue(0);
 
+        builder.Property(p => p.IsRepost)
+            .HasColumnName("is_repost")
+            .HasDefaultValue(false);
+
+        builder.Property(p => p.IsThread)
+            .HasColumnName("is_thread")
+            .HasDefaultValue(false);
+
+        builder.Property(p => p.OriginalPostId)
+            .HasColumnName("original_post_id");
+
         builder.Property(p => p.IsActive)
             .HasColumnName("is_active")
             .HasDefaultValue(true);
@@ -66,6 +77,14 @@ public class PostConfiguration : IEntityTypeConfiguration<Post>
             .WithMany(c => c.Posts)
             .HasForeignKey(p => p.CommunityId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(p => p.OriginalPost)
+            .WithMany()
+            .HasForeignKey(p => p.OriginalPostId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        builder.HasIndex(p => p.OriginalPostId)
+            .HasDatabaseName("ix_posts_original_post_id");
 
         builder.HasQueryFilter(p => p.IsActive);
     }

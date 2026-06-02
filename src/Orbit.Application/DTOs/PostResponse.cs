@@ -11,5 +11,9 @@ public record PostResponse(
     bool IsLiked,
     bool IsSaved,
     DateTime CreatedAt,
-    DateTime UpdatedAt
+    DateTime UpdatedAt,
+    bool IsRepost,
+    bool IsThread,
+    Guid? OriginalPostId,
+    PostAuthorResponse? OriginalAuthor
 );
