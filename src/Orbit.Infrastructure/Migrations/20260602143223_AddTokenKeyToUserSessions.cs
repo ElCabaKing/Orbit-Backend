@@ -10,19 +10,24 @@ namespace Orbit.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.Sql("""
+                IF COL_LENGTH('dbo.user_sessions', 'token_key') IS NOT NULL
+                    ALTER TABLE [user_sessions] DROP COLUMN [token_key]
+                """);
+
             migrationBuilder.AddColumn<string>(
                 name: "token_key",
                 table: "user_sessions",
                 type: "nvarchar(64)",
                 maxLength: 64,
-                nullable: false,
-                defaultValue: "");
+                nullable: true);
 
             migrationBuilder.CreateIndex(
                 name: "ix_user_sessions_token_key",
                 table: "user_sessions",
                 column: "token_key",
-                unique: true);
+                unique: true,
+                filter: "[token_key] IS NOT NULL");
         }
 
         /// <inheritdoc />

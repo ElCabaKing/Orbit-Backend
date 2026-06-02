@@ -24,7 +24,7 @@ public class UserSessionConfiguration : IEntityTypeConfiguration<UserSession>
         builder.Property(s => s.TokenKey)
             .HasColumnName("token_key")
             .HasMaxLength(64)
-            .IsRequired();
+            .IsRequired(false);
 
         builder.Property(s => s.ExpiresAt)
             .HasColumnName("expires_at")
@@ -39,7 +39,8 @@ public class UserSessionConfiguration : IEntityTypeConfiguration<UserSession>
 
         builder.HasIndex(s => s.TokenKey)
             .HasDatabaseName("ix_user_sessions_token_key")
-            .IsUnique();
+            .IsUnique()
+            .HasFilter("[token_key] IS NOT NULL");
 
         builder.HasQueryFilter(s => s.AuthUser.IsActive);
 

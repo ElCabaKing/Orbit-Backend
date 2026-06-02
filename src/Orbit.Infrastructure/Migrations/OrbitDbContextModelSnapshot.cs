@@ -917,7 +917,6 @@ namespace Orbit.Infrastructure.Migrations
                         .HasColumnName("refresh_token_hash");
 
                     b.Property<string>("TokenKey")
-                        .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)")
                         .HasColumnName("token_key");
@@ -929,7 +928,8 @@ namespace Orbit.Infrastructure.Migrations
 
                     b.HasIndex("TokenKey")
                         .IsUnique()
-                        .HasDatabaseName("ix_user_sessions_token_key");
+                        .HasDatabaseName("ix_user_sessions_token_key")
+                        .HasFilter("[token_key] IS NOT NULL");
 
                     b.ToTable("user_sessions", (string)null);
                 });
