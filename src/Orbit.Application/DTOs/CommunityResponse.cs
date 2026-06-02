@@ -28,6 +28,8 @@ public record CommunityResponse(
     CommunityOwnerResponse Owner,
     bool IsMember,
     string? MemberRole,
+    bool? HasPendingJoinRequest,
+    bool? HasPendingInvitation,
     DateTime CreatedAt
 );
 
@@ -38,5 +40,7 @@ public record CommunitySummaryResponse(
     string? Description,
     int MemberCount,
     bool IsPrivate,
-    string? IconUrl
+    string? IconUrl,
+    bool? HasPendingJoinRequest,
+    bool? HasPendingInvitation
 );

@@ -130,7 +130,8 @@ public class CommunityController : BaseController
         pageSize = Math.Clamp(pageSize, 1, 100);
         page = Math.Max(1, page);
 
-        var result = await _communityService.SearchCommunitiesAsync(q, page, pageSize);
+        var profileId = GetProfileId();
+        var result = await _communityService.SearchCommunitiesAsync(q, page, pageSize, profileId);
         return Ok(new { isSuccess = true, data = result.Data });
     }
 

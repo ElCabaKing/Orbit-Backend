@@ -9,7 +9,7 @@ public interface ICommunityService
     Task<Result<CommunityResponse>> UpdateCommunityAsync(Guid authUserId, string slug, string? name, string? description, bool? isPrivate);
     Task<Result> DeleteCommunityAsync(Guid authUserId, string slug);
     Task<Result<CommunityResponse>> GetCommunityAsync(string slug, Guid? currentProfileId);
-    Task<Result<PagedResult<CommunitySummaryResponse>>> SearchCommunitiesAsync(string? query, int page, int pageSize);
+    Task<Result<PagedResult<CommunitySummaryResponse>>> SearchCommunitiesAsync(string? query, int page, int pageSize, Guid? currentProfileId = null);
     Task<Result<PagedResult<CommunitySummaryResponse>>> GetMyCommunitiesAsync(Guid profileId, int page, int pageSize);
     Task<Result> JoinCommunityAsync(Guid profileId, string slug);
     Task<Result> LeaveCommunityAsync(Guid profileId, string slug);

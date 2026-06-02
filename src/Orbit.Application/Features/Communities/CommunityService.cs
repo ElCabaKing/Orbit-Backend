@@ -78,7 +78,7 @@ public class CommunityService : ICommunityService
 
         await _memberRepo.CreateAsync(ownerMember);
 
-        var response = BuildCommunityResponse(community, profile, isMember: true, memberRole: "owner");
+        var response = BuildCommunityResponse(community, profile, isMember: true, memberRole: "owner", hasPendingJoinRequest: false, hasPendingInvitation: false);
         return Result<CommunityResponse>.Success(response, ResponseMessages.CommunityCreated);
     }
 
@@ -133,6 +133,8 @@ public class CommunityService : ICommunityService
             ownerResponse,
             true,
             currentRole,
+            HasPendingJoinRequest: false,
+            HasPendingInvitation: false,
             community.CreatedAt
         );
 
@@ -168,6 +170,8 @@ public class CommunityService : ICommunityService
 
         var isMember = false;
         string? memberRole = null;
+        bool? hasPendingJoinRequest = null;
+        bool? hasPendingInvitation = null;
 
         if (currentProfileId.HasValue)
         {
@@ -177,16 +181,26 @@ public class CommunityService : ICommunityService
                 isMember = true;
                 memberRole = membership.Role;
             }
+
+            hasPendingJoinRequest = await _joinRequestRepo.CountAsync(
+                jr => jr.CommunityId == community.Id
+                   && jr.ProfileId == currentProfileId.Value
+                   && jr.Status == "pending") > 0;
+
+            hasPendingInvitation = await _invitationRepo.CountAsync(
+                inv => inv.CommunityId == community.Id
+                    && inv.ProfileId == currentProfileId.Value
+                    && inv.Status == "pending") > 0;
         }
 
         if (community.IsPrivate && !isMember)
             return Result<CommunityResponse>.Failure(ResponseMessages.CannotJoinPrivate);
 
-        var response = BuildCommunityResponse(community, owner, isMember, memberRole);
+        var response = BuildCommunityResponse(community, owner, isMember, memberRole, hasPendingJoinRequest, hasPendingInvitation);
         return Result<CommunityResponse>.Success(response);
     }
 
-    public async Task<Result<PagedResult<CommunitySummaryResponse>>> SearchCommunitiesAsync(string? query, int page, int pageSize)
+    public async Task<Result<PagedResult<CommunitySummaryResponse>>> SearchCommunitiesAsync(string? query, int page, int pageSize, Guid? currentProfileId = null)
     {
         var skip = (page - 1) * pageSize;
 
@@ -212,6 +226,26 @@ public class CommunityService : ICommunityService
             totalCount = await _communityRepo.CountAsync(c => c.Name.Contains(query));
         }
 
+        Dictionary<Guid, bool>? pendingRequests = null;
+        Dictionary<Guid, bool>? pendingInvitations = null;
+
+        if (currentProfileId.HasValue)
+        {
+            var communityIds = communities.Select(c => c.Id).ToList();
+
+            var requests = await _joinRequestRepo.GetListAsync(
+                jr => communityIds.Contains(jr.CommunityId)
+                   && jr.ProfileId == currentProfileId.Value
+                   && jr.Status == "pending");
+            pendingRequests = requests.ToDictionary(r => r.CommunityId, _ => true);
+
+            var invitations = await _invitationRepo.GetListAsync(
+                inv => communityIds.Contains(inv.CommunityId)
+                    && inv.ProfileId == currentProfileId.Value
+                    && inv.Status == "pending");
+            pendingInvitations = invitations.ToDictionary(inv => inv.CommunityId, _ => true);
+        }
+
         var items = communities.Select(c => new CommunitySummaryResponse(
             c.Id,
             c.Name,
@@ -219,7 +253,9 @@ public class CommunityService : ICommunityService
             c.Description,
             c.MemberCount,
             c.IsPrivate,
-            c.IconUrl
+            c.IconUrl,
+            pendingRequests?.ContainsKey(c.Id),
+            pendingInvitations?.ContainsKey(c.Id)
         )).ToList();
 
         return Result<PagedResult<CommunitySummaryResponse>>.Success(new PagedResult<CommunitySummaryResponse>
@@ -261,7 +297,9 @@ public class CommunityService : ICommunityService
             c.Description,
             c.MemberCount,
             c.IsPrivate,
-            c.IconUrl
+            c.IconUrl,
+            HasPendingJoinRequest: null,
+            HasPendingInvitation: null
         )).ToList();
 
         return Result<PagedResult<CommunitySummaryResponse>>.Success(new PagedResult<CommunitySummaryResponse>
@@ -1102,7 +1140,7 @@ public class CommunityService : ICommunityService
         };
     }
 
-    private static CommunityResponse BuildCommunityResponse(Community community, Profile owner, bool isMember, string? memberRole)
+    private static CommunityResponse BuildCommunityResponse(Community community, Profile owner, bool isMember, string? memberRole, bool? hasPendingJoinRequest = null, bool? hasPendingInvitation = null)
     {
         var ownerResponse = BuildOwnerResponse(owner);
 
@@ -1118,6 +1156,8 @@ public class CommunityService : ICommunityService
             ownerResponse,
             isMember,
             memberRole,
+            hasPendingJoinRequest,
+            hasPendingInvitation,
             community.CreatedAt
         );
     }
