@@ -20,11 +20,9 @@ public class TrendingController : ControllerBase
     [EndpointSummary("Obtener tendencias")]
     [EndpointDescription("Devuelve los hashtags más usados en las últimas 24 horas.")]
     [ProducesResponseType<List<TrendingHashtagResponse>>(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetTrending(
-        [FromQuery] int count = 10,
-        [FromQuery] int hours = 24)
+    public async Task<IActionResult> GetTrending([FromQuery] int hours = 24)
     {
-        var trending = await _hashtagService.GetTrendingHashtagsAsync(count, hours);
+        var trending = await _hashtagService.GetTrendingHashtagsAsync(hours);
         return Ok(new { isSuccess = true, data = trending });
     }
 }

@@ -68,7 +68,7 @@ public class HashtagService : IHashtagService
         await _postHashtagRepo.SaveChangesAsync();
     }
 
-    public async Task<List<TrendingHashtagResponse>> GetTrendingHashtagsAsync(int count = 10, int hours = 24)
+    public async Task<List<TrendingHashtagResponse>> GetTrendingHashtagsAsync(int hours = 24)
     {
         var since = DateTime.UtcNow.AddHours(-hours);
 
@@ -77,7 +77,7 @@ public class HashtagService : IHashtagService
         var grouped = postHashtags
             .GroupBy(ph => ph.HashtagId)
             .OrderByDescending(g => g.Count())
-            .Take(count)
+            .Take(10)
             .ToList();
 
         var hashtagIds = grouped.Select(g => g.Key).ToList();
