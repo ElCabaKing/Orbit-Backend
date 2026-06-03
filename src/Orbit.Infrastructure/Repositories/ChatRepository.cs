@@ -51,7 +51,7 @@ public class ChatRepository : IChatRepository
 
         return await _dbContext.Messages
             .Where(m => m.ConversationId == conversationId)
-            .OrderByDescending(m => m.CreatedAt)
+.OrderBy(m => m.CreatedAt)
             .Skip(skip)
             .Take(pageSize)
             .ToListAsync();
