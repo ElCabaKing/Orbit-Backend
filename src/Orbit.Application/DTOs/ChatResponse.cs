@@ -7,6 +7,18 @@ public record ChatProfileInfo(
     string? AvatarUrl
 );
 
+public record ChatMessageBroadcast(
+    Guid Id,
+    Guid ConversationId,
+    string? Content,
+    bool IsSeen,
+    bool IsEdited,
+    DateTime? EditedAt,
+    DateTime CreatedAt,
+    DateTime? DeletedAt,
+    ChatProfileInfo Sender
+);
+
 public record MessageResponse(
     Guid Id,
     Guid ConversationId,
@@ -16,7 +28,8 @@ public record MessageResponse(
     bool IsEdited,
     DateTime? EditedAt,
     DateTime CreatedAt,
-    DateTime? DeletedAt
+    DateTime? DeletedAt,
+    bool IsFromCurrentUser
 );
 
 public record ChatResponse(
@@ -24,5 +37,6 @@ public record ChatResponse(
     ChatProfileInfo OtherParticipant,
     MessageResponse? LastMessage,
     int UnreadCount,
-    DateTime CreatedAt
+    DateTime CreatedAt,
+    bool IsLastMessageFromCurrentUser
 );

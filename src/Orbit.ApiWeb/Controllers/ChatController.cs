@@ -56,10 +56,15 @@ public class ChatController : BaseController
         if (!result.IsSuccess)
             return BadRequest(new { isSuccess = false, message = result.Message });
 
+        var currentProfileId = profileId.Value;
         var otherProfileId = result.Data!.OtherParticipant.ProfileId;
 
         await _hubContext.Clients
             .Group($"profile:{otherProfileId}")
+            .SendAsync("NewConversation", result.Data);
+
+        await _hubContext.Clients
+            .Group($"profile:{currentProfileId}")
             .SendAsync("NewConversation", result.Data);
 
         return Ok(new { isSuccess = true, data = result.Data });
@@ -68,17 +73,15 @@ public class ChatController : BaseController
     [HttpGet("api/chats")]
     [EndpointSummary("Listar conversaciones")]
     [EndpointDescription("Obtiene las conversaciones del usuario autenticado.")]
-    [ProducesResponseType<Result<PagedResult<ChatResponse>>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<Result<List<ChatResponse>>>(StatusCodes.Status200OK)]
     [ProducesResponseType<Result>(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> GetConversations(
-        [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    public async Task<IActionResult> GetConversations()
     {
         var profileId = GetProfileId();
         if (profileId is null)
             return Unauthorized(new { isSuccess = false, message = ResponseMessages.InvalidToken });
 
-        var result = await _chatService.GetConversationsAsync(
-            profileId.Value, page, Math.Clamp(pageSize, 1, 50));
+        var result = await _chatService.GetConversationsAsync(profileId.Value);
 
         return Ok(new { isSuccess = true, data = result.Data });
     }
@@ -131,18 +134,24 @@ public class ChatController : BaseController
         if (!result.IsSuccess)
             return BadRequest(new { isSuccess = false, message = result.Message });
 
+        var msg = result.Data!;
+        var senderInfo = await _chatService.GetProfileInfoAsync(msg.SenderProfileId);
+
+        var broadcast = new ChatMessageBroadcast(
+            msg.Id,
+            msg.ConversationId,
+            msg.Content,
+            msg.IsSeen,
+            msg.IsEdited,
+            msg.EditedAt,
+            msg.CreatedAt,
+            msg.DeletedAt,
+            senderInfo!
+        );
+
         await _hubContext.Clients
             .Group($"conversation:{conversationId}")
-            .SendAsync("ReceiveMessage", new
-            {
-                id = result.Data!.Id,
-                conversationId = result.Data.ConversationId,
-                senderProfileId = result.Data.SenderProfileId,
-                content = result.Data.Content,
-                isSeen = result.Data.IsSeen,
-                isEdited = result.Data.IsEdited,
-                createdAt = result.Data.CreatedAt,
-            });
+            .SendAsync("ReceiveMessage", broadcast);
 
         return Ok(new { isSuccess = true, data = result.Data });
     }

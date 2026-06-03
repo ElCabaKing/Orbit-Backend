@@ -22,7 +22,7 @@ public class ChatRepository : IChatRepository
 
         if (raw is null) return null;
 
-        return MapToDetails(raw);
+        return MapToDetails(raw, profileId);
     }
 
     public async Task<Conversation?> GetExistingDmAsync(Guid profileId1, Guid profileId2)
@@ -34,42 +34,15 @@ public class ChatRepository : IChatRepository
             .FirstOrDefaultAsync();
     }
 
-    public async Task<List<ConversationWithDetails>> GetConversationsAsync(Guid profileId, int page, int pageSize)
+    public async Task<List<ConversationWithDetails>> GetConversationsAsync(Guid profileId)
     {
-        var skip = (page - 1) * pageSize;
-
-        var pagedIds = await _dbContext.Conversations
-            .Where(c => c.Participants.Any(p => p.ProfileId == profileId))
-            .Select(c => new
-            {
-                c.Id,
-                LastMsgAt = c.Messages
-                    .OrderByDescending(m => m.CreatedAt)
-                    .Select(m => (DateTime?)m.CreatedAt)
-                    .FirstOrDefault() ?? c.CreatedAt
-            })
-            .OrderByDescending(x => x.LastMsgAt)
-            .Skip(skip)
-            .Take(pageSize)
-            .Select(x => x.Id)
-            .ToListAsync();
-
         var rawList = await RawQuery(profileId)
-            .Where(r => pagedIds.Contains(r.Id))
+            .OrderByDescending(r => r.LastMsgCreatedAt ?? r.CreatedAt)
             .ToListAsync();
 
-        var lookup = rawList.ToDictionary(r => r.Id);
-        return pagedIds
-            .Select(id => lookup[id])
-            .Select(MapToDetails)
+        return rawList
+            .Select(r => MapToDetails(r, profileId))
             .ToList();
-    }
-
-    public async Task<int> GetConversationsCountAsync(Guid profileId)
-    {
-        return await _dbContext.Conversations
-            .Where(c => c.Participants.Any(p => p.ProfileId == profileId))
-            .CountAsync();
     }
 
     public async Task<List<Message>> GetMessagesAsync(Guid conversationId, int page, int pageSize)
@@ -158,7 +131,7 @@ public class ChatRepository : IChatRepository
             });
     }
 
-    private static ConversationWithDetails MapToDetails(ConversationRaw raw)
+    private static ConversationWithDetails MapToDetails(ConversationRaw raw, Guid profileId)
     {
         return new ConversationWithDetails
         {
@@ -181,10 +154,12 @@ public class ChatRepository : IChatRepository
                     raw.LastMsgIsEdited ?? false,
                     raw.LastMsgEditedAt,
                     raw.LastMsgCreatedAt ?? DateTime.MinValue,
-                    raw.LastMsgDeletedAt
+                    raw.LastMsgDeletedAt,
+                    raw.LastMsgSenderId == profileId
                   )
                 : null,
-            UnreadCount = raw.UnreadCount
+            UnreadCount = raw.UnreadCount,
+            IsLastMessageFromCurrentUser = raw.LastMsgSenderId == profileId
         };
     }
 

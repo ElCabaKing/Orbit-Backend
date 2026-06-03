@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Orbit.Application.Constants;
+using Orbit.Application.DTOs;
 using Orbit.Domain.Entities;
 using Orbit.Infrastructure.DbContext;
 using Orbit.Shared.Constants;
@@ -95,22 +96,17 @@ public class ChatHub : Hub
             .Select(p => new { p.Id, p.Username, p.DisplayName, p.ProfilePictureUrl })
             .FirstAsync();
 
-        var messageDto = new
-        {
-            id = message.Id,
-            conversationId = message.ConversationId,
-            content = message.Content,
-            isSeen = message.IsSeen,
-            isEdited = message.IsEdited,
-            createdAt = message.CreatedAt,
-            sender = new
-            {
-                id = sender.Id,
-                username = sender.Username,
-                displayName = sender.DisplayName,
-                avatarUrl = sender.ProfilePictureUrl,
-            },
-        };
+        var messageDto = new ChatMessageBroadcast(
+            message.Id,
+            message.ConversationId,
+            message.Content,
+            message.IsSeen,
+            message.IsEdited,
+            message.EditedAt,
+            message.CreatedAt,
+            message.DeletedAt,
+            new ChatProfileInfo(sender.Id, sender.Username, sender.DisplayName, sender.ProfilePictureUrl)
+        );
 
         await Clients.OthersInGroup(ConversationGroup(conversationId))
             .SendAsync("ReceiveMessage", messageDto);

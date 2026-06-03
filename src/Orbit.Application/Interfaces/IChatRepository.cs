@@ -11,14 +11,14 @@ public class ConversationWithDetails
     public ChatProfileInfo OtherParticipant { get; init; } = null!;
     public MessageResponse? LastMessage { get; init; }
     public int UnreadCount { get; init; }
+    public bool IsLastMessageFromCurrentUser { get; init; }
 }
 
 public interface IChatRepository
 {
     Task<ConversationWithDetails?> GetConversationDetailsAsync(Guid conversationId, Guid profileId);
     Task<Conversation?> GetExistingDmAsync(Guid profileId1, Guid profileId2);
-    Task<List<ConversationWithDetails>> GetConversationsAsync(Guid profileId, int page, int pageSize);
-    Task<int> GetConversationsCountAsync(Guid profileId);
+    Task<List<ConversationWithDetails>> GetConversationsAsync(Guid profileId);
     Task<List<Message>> GetMessagesAsync(Guid conversationId, int page, int pageSize);
     Task<int> GetMessagesCountAsync(Guid conversationId);
     Task<bool> IsParticipantAsync(Guid conversationId, Guid profileId);

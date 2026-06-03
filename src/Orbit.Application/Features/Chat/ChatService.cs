@@ -72,19 +72,13 @@ public class ChatService : IChatService
             : Result<ChatResponse>.Failure(ResponseMessages.ConversationNotFound);
     }
 
-    public async Task<Result<PagedResult<ChatResponse>>> GetConversationsAsync(
-        Guid currentProfileId, int page, int pageSize)
+    public async Task<Result<List<ChatResponse>>> GetConversationsAsync(Guid currentProfileId)
     {
-        var conversations = await _chatRepo.GetConversationsAsync(currentProfileId, page, pageSize);
-        var totalCount = await _chatRepo.GetConversationsCountAsync(currentProfileId);
+        var conversations = await _chatRepo.GetConversationsAsync(currentProfileId);
 
-        return Result<PagedResult<ChatResponse>>.Success(new PagedResult<ChatResponse>
-        {
-            Items = conversations.Select(MapToResponse).ToList(),
-            TotalCount = totalCount,
-            Page = page,
-            PageSize = pageSize,
-        });
+        return Result<List<ChatResponse>>.Success(
+            conversations.Select(MapToResponse).ToList()
+        );
     }
 
     public async Task<Result<PagedResult<MessageResponse>>> GetMessagesAsync(
@@ -101,7 +95,8 @@ public class ChatService : IChatService
         {
             Items = messages.Select(m => new MessageResponse(
                 m.Id, m.ConversationId, m.SenderProfileId, m.Content,
-                m.IsSeen, m.IsEdited, m.EditedAt, m.CreatedAt, m.DeletedAt
+                m.IsSeen, m.IsEdited, m.EditedAt, m.CreatedAt, m.DeletedAt,
+                m.SenderProfileId == currentProfileId
             )).ToList(),
             TotalCount = totalCount,
             Page = page,
@@ -144,7 +139,8 @@ public class ChatService : IChatService
             message.IsEdited,
             message.EditedAt,
             message.CreatedAt,
-            message.DeletedAt
+            message.DeletedAt,
+            true
         ));
     }
 
@@ -168,6 +164,13 @@ public class ChatService : IChatService
         return Result.Success(ResponseMessages.MessageDeleted);
     }
 
+    public async Task<ChatProfileInfo?> GetProfileInfoAsync(Guid profileId)
+    {
+        var profile = await _profileRepo.GetByIdAsync(profileId);
+        if (profile is null) return null;
+        return new ChatProfileInfo(profile.Id, profile.Username, profile.DisplayName, profile.ProfilePictureUrl);
+    }
+
     private static ChatResponse MapToResponse(ConversationWithDetails details)
     {
         return new ChatResponse(
@@ -175,7 +178,8 @@ public class ChatService : IChatService
             details.OtherParticipant,
             details.LastMessage,
             details.UnreadCount,
-            details.CreatedAt
+            details.CreatedAt,
+            details.IsLastMessageFromCurrentUser
         );
     }
 }
