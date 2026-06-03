@@ -31,6 +31,8 @@ public class OrbitDbContext : Microsoft.EntityFrameworkCore.DbContext
     public DbSet<CommunityJoinRequest> CommunityJoinRequests => Set<CommunityJoinRequest>();
     public DbSet<CommunityInvitation> CommunityInvitations => Set<CommunityInvitation>();
     public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<Hashtag> Hashtags => Set<Hashtag>();
+    public DbSet<PostHashtag> PostHashtags => Set<PostHashtag>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

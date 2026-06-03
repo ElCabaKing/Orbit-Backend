@@ -4129,6 +4129,28 @@
           }
         }
       ]
+    },
+    {
+      "name": "Trending",
+      "description": "Hashtags en tendencia",
+      "item": [
+        {
+          "name": "Get Trending",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/trending?count=10&hours=24",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "trending"],
+              "query": [
+                { "key": "count", "value": "10" },
+                { "key": "hours", "value": "24" }
+              ]
+            }
+          }
+        }
+      ]
     }
   ]
 }

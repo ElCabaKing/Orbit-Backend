@@ -11,6 +11,7 @@ using Orbit.Application.Features.Follows;
 using Orbit.Application.Features.Posts;
 using Orbit.Application.Features.Profiles;
 using Orbit.Application.Features.Communities;
+using Orbit.Application.Features.Hashtags;
 using Orbit.Application.Features.Roles;
 using Orbit.Application.Interfaces;
 using Orbit.Infrastructure.Extensions;
@@ -34,6 +35,7 @@ builder.Services.AddScoped<IFollowService, FollowService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<ICommunityService, CommunityService>();
+builder.Services.AddScoped<IHashtagService, HashtagService>();
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterValidator>();
 builder.Services.AddHostedService<NotificationBackgroundService>();
 

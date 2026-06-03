@@ -23,6 +23,7 @@ public class PostService : IPostService
     private readonly IGenericRepository<UserBan> _userBanRepo;
     private readonly ICloudinaryService _cloudinaryService;
     private readonly NotificationChannel _notificationChannel;
+    private readonly IHashtagService _hashtagService;
 
     public PostService(
         IGenericRepository<Orbit.Domain.Entities.Post> postRepo,
@@ -37,7 +38,8 @@ public class PostService : IPostService
         IGenericRepository<SavedPost> savedPostRepo,
         IGenericRepository<UserBan> userBanRepo,
         ICloudinaryService cloudinaryService,
-        NotificationChannel notificationChannel)
+        NotificationChannel notificationChannel,
+        IHashtagService hashtagService)
     {
         _postRepo = postRepo;
         _profileRepo = profileRepo;
@@ -52,6 +54,7 @@ public class PostService : IPostService
         _userBanRepo = userBanRepo;
         _cloudinaryService = cloudinaryService;
         _notificationChannel = notificationChannel;
+        _hashtagService = hashtagService;
     }
 
     public async Task<Result<PostResponse>> CreatePostAsync(Guid authUserId, string? content, List<MediaUploadData>? mediaFiles)
@@ -110,6 +113,8 @@ public class PostService : IPostService
         profile.UpdatedAt = DateTime.UtcNow;
         _profileRepo.Update(profile);
         await _profileRepo.SaveChangesAsync();
+
+        await _hashtagService.ProcessPostHashtags(post.Id, content);
 
         var author = BuildAuthorResponse(profile);
         return Result<PostResponse>.Success(BuildPostResponse(post, author, false, false, mediaList));
@@ -330,6 +335,8 @@ public class PostService : IPostService
         }
 
         await _postRepo.SaveChangesAsync();
+
+        await _hashtagService.ProcessPostHashtags(postId, content);
 
         var mediaList = await _mediaRepo.GetListAsync(m => m.PostId == postId);
 
