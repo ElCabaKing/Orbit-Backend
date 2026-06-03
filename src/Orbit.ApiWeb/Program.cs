@@ -72,14 +72,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             OnMessageReceived = context =>
             {
-                var accessToken = context.Request.Query["access_token"];
                 var path = context.HttpContext.Request.Path;
+                if (!path.StartsWithSegments("/hubs/"))
+                    return Task.CompletedTask;
 
-                if (!string.IsNullOrEmpty(accessToken) &&
-                    path.StartsWithSegments("/hubs/"))
+                var authHeader = context.Request.Headers.Authorization.FirstOrDefault();
+                if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
                 {
-                    context.Token = accessToken;
+                    context.Token = authHeader["Bearer ".Length..];
+                    return Task.CompletedTask;
                 }
+
+                var accessToken = context.Request.Query["access_token"];
+                if (!string.IsNullOrEmpty(accessToken))
+                    context.Token = accessToken;
 
                 return Task.CompletedTask;
             }
@@ -138,6 +144,7 @@ builder.Services.AddSignalR(options =>
 var app = builder.Build();
 
 app.UseCors("AllowFrontend");
+app.UseWebSockets();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
