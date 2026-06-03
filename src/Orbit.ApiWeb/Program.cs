@@ -67,29 +67,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(jwtSecret)),
         };
-
-        options.Events = new JwtBearerEvents
-        {
-            OnMessageReceived = context =>
-            {
-                var path = context.HttpContext.Request.Path;
-                if (!path.StartsWithSegments("/hubs/"))
-                    return Task.CompletedTask;
-
-                var authHeader = context.Request.Headers.Authorization.FirstOrDefault();
-                if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-                {
-                    context.Token = authHeader["Bearer ".Length..];
-                    return Task.CompletedTask;
-                }
-
-                var accessToken = context.Request.Query["access_token"];
-                if (!string.IsNullOrEmpty(accessToken))
-                    context.Token = accessToken;
-
-                return Task.CompletedTask;
-            }
-        };
     });
 
 builder.Services.AddCors(options =>
@@ -144,6 +121,20 @@ builder.Services.AddSignalR(options =>
 var app = builder.Build();
 
 app.UseCors("AllowFrontend");
+
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/hubs"))
+    {
+        var token = context.Request.Query["access_token"].FirstOrDefault();
+        if (!string.IsNullOrEmpty(token))
+        {
+            context.Request.Headers["Authorization"] = $"Bearer {token}";
+        }
+    }
+    await next();
+});
+
 app.UseWebSockets();
 app.UseAuthentication();
 app.UseAuthorization();
