@@ -17,6 +17,8 @@ public class CommunityService : ICommunityService
     private readonly IGenericRepository<CommunityInvitation> _invitationRepo;
     private readonly IGenericRepository<Post> _postRepo;
     private readonly IGenericRepository<PostMedia> _mediaRepo;
+    private readonly IGenericRepository<PostLike> _likeRepo;
+    private readonly IGenericRepository<SavedPost> _savedPostRepo;
     private readonly ICloudinaryService _cloudinaryService;
 
     public CommunityService(
@@ -27,6 +29,8 @@ public class CommunityService : ICommunityService
         IGenericRepository<CommunityInvitation> invitationRepo,
         IGenericRepository<Post> postRepo,
         IGenericRepository<PostMedia> mediaRepo,
+        IGenericRepository<PostLike> likeRepo,
+        IGenericRepository<SavedPost> savedPostRepo,
         ICloudinaryService cloudinaryService)
     {
         _communityRepo = communityRepo;
@@ -36,6 +40,8 @@ public class CommunityService : ICommunityService
         _invitationRepo = invitationRepo;
         _postRepo = postRepo;
         _mediaRepo = mediaRepo;
+        _likeRepo = likeRepo;
+        _savedPostRepo = savedPostRepo;
         _cloudinaryService = cloudinaryService;
     }
 
@@ -1080,6 +1086,19 @@ public class CommunityService : ICommunityService
         var allMedia = await _mediaRepo.GetListAsync(m => postIds.Contains(m.PostId));
         mediaMap = allMedia.GroupBy(m => m.PostId).ToDictionary(g => g.Key, g => g.ToList());
 
+        HashSet<Guid> likedPostIds = [];
+        HashSet<Guid> savedPostIds = [];
+        if (currentProfileId.HasValue)
+        {
+            var likes = await _likeRepo.GetListAsync(l =>
+                l.ProfileId == currentProfileId.Value && postIds.Contains(l.PostId));
+            likedPostIds = likes.Select(l => l.PostId).ToHashSet();
+
+            var saved = await _savedPostRepo.GetListAsync(s =>
+                s.ProfileId == currentProfileId.Value && postIds.Contains(s.PostId));
+            savedPostIds = saved.Select(s => s.PostId).ToHashSet();
+        }
+
         var items = posts.Select(p =>
         {
             var prof = profileMap.GetValueOrDefault(p.ProfileId);
@@ -1087,7 +1106,7 @@ public class CommunityService : ICommunityService
                 ? new PostAuthorResponse(prof.Id, prof.Username, prof.DisplayName, prof.ProfilePictureUrl, false)
                 : new PostAuthorResponse(p.ProfileId, "Unknown", "Unknown", null, false);
             var media = mediaMap.GetValueOrDefault(p.Id) ?? [];
-            return BuildPostResponse(p, author, false, false, media);
+            return BuildPostResponse(p, author, likedPostIds.Contains(p.Id), savedPostIds.Contains(p.Id), media);
         }).ToList();
 
         return Result<PagedResult<PostResponse>>.Success(new PagedResult<PostResponse>
